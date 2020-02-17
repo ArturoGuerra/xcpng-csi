@@ -1,4 +1,4 @@
-package csi-driver
+package service
 
 /*
 Controller Implements
@@ -18,22 +18,20 @@ import (
 
 func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
     name := req.GetName()
-    params, err := s.ParseParams(req.GetParameters())
-    if err != nil {
-        log.Error(err)
-        return nil, err
-    }
+//    params, err := s.ParseParams(req.GetParameters())
+//    if err != nil {
+//        log.Error(err)
+//        return nil, err
+//    }
 
-    volume, err := s.XClient.CreateVolume(name, size)
-    if err != nil {
-        log.Error(err)
-        return nil, err
-    }
+    log.Info(name)
+
 
     return &csi.CreateVolumeRespone{
         Volume: &csi.Volume{
-            VolumeId: volume.VID,
-            CapacityBytes: int64(volume.Capacity),
+            VolumeId: name,
+            CapacityBytes: req.GetCapacityRange().GetRequiredBytes(),
+            VolumeContext: req.GetParameters(),
         },
     }, nil
 }
@@ -58,6 +56,6 @@ func (s *service) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) 
     return &csi.ListVolumes{}, nil
 }
 
-func (s *service) GetCapacity(ctx context.Context, req *csi.GetCapacitiyRequest) (*csi.GetCapacityResponse, error) {
+func (s *service) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
     return &csi.GetCapacity{}, nil
 }

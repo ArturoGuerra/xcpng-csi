@@ -3,7 +3,7 @@ package main
 import (
     "context"
     "github.com/rexray/gocsi"
-    "github.com/arturoguerra/gologging"
+    "github.com/arturoguerra/go-logging"
     config "github.com/arturoguerra/xcpng-csi/internal/config"
     service "github.com/arturoguerra/xcpng-csi/pkg/csi/service"
     service "github.com/arturoguerra/xcpng-csi/pkg/csi/provider"

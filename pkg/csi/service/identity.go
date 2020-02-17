@@ -1,6 +1,7 @@
-package csi-driver
+package service
 
 import (
+    "context"
     "github.com/golang/protobuf/ptypes/wrappers"
     "github.com/container-storage-interface/spec/lib/go/csi"
 )
@@ -21,6 +22,6 @@ func (s *service) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoReque
 
 func (s *service) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
     return &csi.GetPluginCapabilitiesResponse{
-        Capabilities: []*csi.PluginCapability{}
+        Capabilities: []*csi.PluginCapability{},
     }, nil
 }

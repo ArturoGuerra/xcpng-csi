@@ -5,7 +5,7 @@ import (
     "net"
 
     "github.com/rexray/gocsi"
-    "github.com/arturoguerra/gologging"
+    "github.com/arturoguerra/go-logging"
     "github.com/arturoguerra/xcpng-csi/pkg/xapi"
     "github.com/arturoguerra/xcpng-csi/pkg/csi/service"
 )

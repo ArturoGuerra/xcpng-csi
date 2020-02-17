@@ -1,4 +1,4 @@
-package csi-driver
+package service
 
 /*
 Node Service
