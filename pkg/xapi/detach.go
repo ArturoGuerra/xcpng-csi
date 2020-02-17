@@ -1,7 +1,7 @@
 package xapi
 
 import (
-    "github.com/arturoguerra/kube-xenserver-flexvolume/driver/pkg/utils"
+    "github.com/arturoguerra/xcpng-csi/pkg/utils"
     xenapi "github.com/terra-farm/go-xen-api-client"
 )
 
