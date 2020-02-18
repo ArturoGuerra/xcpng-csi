@@ -8,7 +8,7 @@ type (
         Attach(string, string, string, string) (string, error)
         Detach(string, string) error
         IsAttached(string, string) (bool, error)
-        CreateVolume(string, string, string, int) error
+        CreateVolume(string, string, string, int) (string, error)
         DeleteVolume(string) error
     }
 
