@@ -1,0 +1,8 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: xcpng-ssd
+provisioner: csi.xcpng.arturonet.com
+parameters:
+  SR: "SSD Local Storage"
+  FSType: "ext4"

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xcpng-csi-config
+data:
+  XCPNG_USERNAME: "root"
+  SECRETS_XCPNG_PASSWORD: "Hydr0gen7892"
+  XCPNG_HOST: "10.50.1.10"

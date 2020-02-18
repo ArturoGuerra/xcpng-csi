@@ -1,0 +1,60 @@
+{{- with .Values }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}-controller
+  labels:
+    app: {{ .name }}-controller
+spec:
+  selector:
+    matchLabels:
+      app: {{ .name }}-controller
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}-controller
+    spec:
+      serviceAccount: xcpng-csi
+      containers:
+        # CSI Provisioner
+        - name: csi-provisioner
+          image: quay.io/k8scsi/csi-provisioner:canary
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--enable-leader-election"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+          volumeMounts:
+            - name: socket
+              mountPath: /var/lib/csi/sockets/pluginproxy
+        # CSI Attacher
+        - name: csi-attacher
+          image: quay.io/k8scsi/csi-attacher:canary
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--leader-election"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+          volumeMounts:
+            - name: socket
+              mountPath: /var/lib/csi/sockets/pluginproxy
+        # Controller
+        - name: {{ .name }}-controller
+          image: {{ .image }}
+          env:
+            - name: CSI_ENDPOINT
+              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+            - name: CSI_MODE
+              value: controller
+          envFrom:
+            - configMapRef:
+                name: {{ .name }}-config
+          volumeMounts:
+            - name: socket
+              mountPath: /var/lib/csi/sockets/pluginproxy
+      volumes:
+        - name: socket
+          emptyDir: {}
+{{- end }}

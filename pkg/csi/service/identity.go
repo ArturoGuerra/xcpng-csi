@@ -13,6 +13,7 @@ func (s *service) Probe(ctx context.Context, req *csi.ProbeRequest) (*csi.ProbeR
 }
 
 func (s *service) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoRequest) (*csi.GetPluginInfoResponse, error) {
+    log.Info("Getting plugin info")
     return &csi.GetPluginInfoResponse{
         Name:          Name,
         VendorVersion: VendorVersion,

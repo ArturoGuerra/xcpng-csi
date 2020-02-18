@@ -42,25 +42,42 @@ func (s *service) ControllerGetCapabilities(ctx context.Context, req *csi.Contro
 
 func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
     name := req.GetName()
-//    params, err := s.ParseParams(req.GetParameters())
-//    if err != nil {
-//        log.Error(err)
-//        return nil, err
-//    }
+    params, err := s.ParseParams(req.GetParameters())
+    if err != nil {
+        log.Error(err)
+        return nil, err
+    }
 
-    log.Info(name)
+    // Calculates disk size in bytes and sets a min size of 5Gi
+    volSizeBytes := int64(minSize)
+    if req.GetCapacityRange() != nil && req.GetCapacityRange().RequiredBytes != 0 {
+        if int64(req.GetCapacityRange().GetRequiredBytes()) > volSizeBytes {
+            log.Info("Setting custom disk size")
+            volSizeBytes = int64(req.GetCapacityRange().GetRequiredBytes())
+        }
+    }
 
+    if err = s.XClient.CreateVolume(name, params.SR, params.FSType, int(volSizeBytes)); err != nil {
+        log.Error(err)
+        return nil, err
+    }
 
     return &csi.CreateVolumeResponse{
         Volume: &csi.Volume{
             VolumeId: name,
-            CapacityBytes: req.GetCapacityRange().GetRequiredBytes(),
+            CapacityBytes: volSizeBytes,
             VolumeContext: req.GetParameters(),
         },
     }, nil
 }
 
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
+
+    if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
+        log.Error(err)
+        return nil, err
+    }
+
     return &csi.DeleteVolumeResponse{}, nil
 }
 

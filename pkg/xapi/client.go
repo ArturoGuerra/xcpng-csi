@@ -8,6 +8,8 @@ type (
         Attach(string, string, string, string) (string, error)
         Detach(string, string) error
         IsAttached(string, string) (bool, error)
+        CreateVolume(string, string, string, int) error
+        DeleteVolume(string) error
     }
 
     xClient struct {
