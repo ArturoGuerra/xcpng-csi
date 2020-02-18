@@ -6,6 +6,7 @@ import (
     //"sync"
     //"sync/atomic"
     //"//github.com/golang/protobuf/ptypes"
+    "github.com/arturoguerra/go-logging"
     "github.com/container-storage-interface/spec/lib/go/csi"
     "github.com/arturoguerra/xcpng-csi/pkg/xapi"
 )
@@ -19,6 +20,8 @@ var Manifest = map[string]string{
     "url": "https://github.com/arturoguerra/kube-xcpng-csi",
 }
 
+var log = logging.New()
+
 type Service interface {
     csi.ControllerServer
     csi.IdentityServer
@@ -30,7 +33,7 @@ type service struct {
     NodeID   string
 }
 
-func New(xclient xapi.Client, nodeid string) Service {
+func New(xclient xapi.XClient, nodeid string) Service {
     return &service{
         XClient: xclient,
         NodeID:  nodeid,

@@ -12,9 +12,15 @@ NodeGetUsage Unimplemented ATM
 */
 
 import (
+    "google.golang.org/grpc/status"
+    "google.golang.org/grpc/codes"
     "github.com/container-storage-interface/spec/lib/go/csi"
     "context"
 )
+
+func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
+    return &csi.NodeGetCapabilitiesResponse{}, nil
+}
 
 func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
     return &csi.NodeStageVolumeResponse{}, nil
@@ -24,22 +30,22 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
     return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
-func (s *service) NodePublish(ctx context.Context, req *csi.NodePublishRequest) (*csi.NodePublishResponse, error) {
-    return &csi.NodePublishResponse{}, nil
+func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+    return &csi.NodePublishVolumeResponse{}, nil
 }
 
-func (s *service) NodeUnpublish(ctx context.Context, req *csi.NodeUnpublishRequest) (*csi.NodeUnpublishResponse, error) {
-    return &csi.NodeUnpublishResponse{}, nil
+func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
+    return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
 func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
     return &csi.NodeGetInfoResponse{}, nil
 }
 
-func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
-    return &csi.NodeGetCapabilities{}, nil
+func (s *service) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
 }
 
-func (s *service) NodeGetUsage(ctx context.Context, req *csi.NodeGetUsageRequest) (*csi.NodeGetUsageResponse, error) {
-    return &csi.NodeGetUsageResponse{}, nil
+func (s *service) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
 }

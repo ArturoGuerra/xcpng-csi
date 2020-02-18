@@ -1,11 +1,8 @@
 package provider
 
 import (
-    "context"
-    "net"
 
     "github.com/rexray/gocsi"
-    "github.com/arturoguerra/go-logging"
     "github.com/arturoguerra/xcpng-csi/pkg/xapi"
     "github.com/arturoguerra/xcpng-csi/pkg/csi/service"
 )
@@ -15,10 +12,10 @@ const (
 )
 
 var Manifest = map[string]string{
-    "url": "https://github.com/arturoguerra/xcpng-csi"
+    "url": "https://github.com/arturoguerra/xcpng-csi",
 }
 
-func New(xclient xapi.XClient, nodeid) gocsi.StoragePluginProvider {
+func New(xclient xapi.XClient, nodeid string) gocsi.StoragePluginProvider {
     svc := service.New(xclient, nodeid)
     return &gocsi.StoragePlugin{
         Controller: svc,

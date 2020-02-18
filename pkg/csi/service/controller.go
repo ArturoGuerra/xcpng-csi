@@ -13,8 +13,32 @@ GetCapacity
 
 import (
     "context"
+    "google.golang.org/grpc/status"
+    "google.golang.org/grpc/codes"
     "github.com/container-storage-interface/spec/lib/go/csi"
 )
+
+
+func (s *service) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
+    return &csi.ControllerGetCapabilitiesResponse{
+        Capabilities: []*csi.ControllerServiceCapability{
+            {
+                Type: &csi.ControllerServiceCapability_Rpc{
+                    Rpc: &csi.ControllerServiceCapability_RPC{
+                        Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
+                    },
+                },
+            },
+            {
+                Type: &csi.ControllerServiceCapability_Rpc{
+                    Rpc: &csi.ControllerServiceCapability_RPC{
+                        Type: csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
+                    },
+                },
+            },
+        },
+    }, nil
+}
 
 func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
     name := req.GetName()
@@ -27,7 +51,7 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
     log.Info(name)
 
 
-    return &csi.CreateVolumeRespone{
+    return &csi.CreateVolumeResponse{
         Volume: &csi.Volume{
             VolumeId: name,
             CapacityBytes: req.GetCapacityRange().GetRequiredBytes(),
@@ -49,13 +73,35 @@ func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.Contro
 }
 
 func (s *service) ValidateVolumeCapabilities(ctx context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
-    return &csi.ValidateVolumeCapabilities{}, nil
+    return &csi.ValidateVolumeCapabilitiesResponse{}, nil
 }
 
+
+// Unimplemented
+
 func (s *service) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
-    return &csi.ListVolumes{}, nil
+    return nil, status.Error(codes.Unimplemented, "")
+}
+
+
+func (s *service) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
+}
+
+
+
+func (s *service) CreateSnapshot(ctx context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
+}
+
+func (s *service) DeleteSnapshot(ctx context.Context, req *csi.DeleteSnapshotRequest) (*csi.DeleteSnapshotResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
+}
+
+func (s *service) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsRequest) (*csi.ListSnapshotsResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (s *service) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
-    return &csi.GetCapacity{}, nil
+    return nil, status.Error(codes.Unimplemented, "")
 }

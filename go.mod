@@ -10,4 +10,5 @@ require (
 	github.com/rexray/gocsi v1.2.0
 	github.com/terra-farm/go-xen-api-client v0.0.0-20191130210227-94f14387b8c2
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	google.golang.org/grpc v1.19.0
 )
