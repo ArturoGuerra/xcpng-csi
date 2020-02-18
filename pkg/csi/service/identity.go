@@ -22,6 +22,7 @@ func (s *service) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoReque
 }
 
 func (s *service) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
+    log.Info("Getting Plugin Capabilities")
     return &csi.GetPluginCapabilitiesResponse{
         Capabilities: []*csi.PluginCapability{
             &csi.PluginCapability{

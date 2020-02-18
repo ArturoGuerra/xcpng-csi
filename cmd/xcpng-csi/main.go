@@ -20,6 +20,13 @@ func main() {
     log := logging.New()
     cfg := config.Load()
 
+    // Ensures we always have a node ID
+    if cfg.NodeID == "" {
+        log.Fatal("Invalid Node ID")
+    }
+
+    log.Infof("NodeID: %s", cfg.NodeID)
+
     xclient := xapi.New(cfg.Username, cfg.Password, cfg.Host)
 
     log.Info("Starting GoCSI for XCP-ng...")

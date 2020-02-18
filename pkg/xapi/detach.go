@@ -1,7 +1,6 @@
 package xapi
 
 import (
-    "github.com/arturoguerra/xcpng-csi/pkg/utils"
     xenapi "github.com/terra-farm/go-xen-api-client"
 )
 
@@ -17,7 +16,7 @@ func (c *xClient) Detach(volname, nodename string) error {
         return err
     }
 
-    utils.Debug("VDI.GetAllRecords")
+    log.Info("VDI.GetAllRecords")
     vdis, err := api.VDI.GetAllRecords(session)
     if err != nil {
         return err
@@ -30,7 +29,7 @@ func (c *xClient) Detach(volname, nodename string) error {
         }
     }
 
-    utils.Debug("VBD.GetAllRecords")
+    log.Info("VBD.GetAllRecords")
     vbds, err := api.VBD.GetAllRecords(session)
     if err != nil {
         return err

@@ -1,0 +1,71 @@
+{{- with .Values }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .name }}-node
+  labels:
+    app: {{ .name }}-node
+spec:
+  selector:
+    matchLabels:
+      app: {{ .name }}-node
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}-node
+    spec:
+      containers:
+        # Node Registration
+        - name: csi-driver-registrar
+          image: quay.io/k8scsi/csi-node-driver-registrar:canary
+          args:
+            - "--csi-address=/csi/csi.sock"
+            - "--kubelet-registration-path=/var/lib/kubelet/plugins/csi.xcpng.arturonet.com/csi.sock"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "rm -rf /registration/csi.xcpng.arturonet.com /registration/csi.xcpng.arturonet.com-reg.sock"]
+          volumeMounts:
+            - name: socket-dir
+              mountPath: "/csi"
+            - name: registration-dir
+              mountPath: "/registration"
+          securityContext:
+            privileged: true
+        #Node
+        - name: {{ .name }}-node
+          image: {{ .image }}
+          env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: CSI_ENDPOINT
+              value: /csi/csi.sock
+            - name: CSI_MODE
+              value: node
+          envFrom:
+            - configMapRef:
+                name: {{ .name }}-config
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+            - name: mountpoint-dir
+              mountPath: /var/lib/kubelet/pods
+              mountPropagation: "Bidirectional"
+          securityContext:
+            privileged: true
+      volumes:
+        - name: socket-dir
+          hostPath:
+            path: "/var/lib/kubelet/plugins/csi.xcpng.arturonet.com/"
+            type: DirectoryOrCreate
+        - name: mountpoint-dir
+          hostPath:
+            path: "/var/lib/kubelet/pods/"
+            type: Directory
+        - name: registration-dir
+          hostPath:
+            path: "/var/lib/kubelet/plugins_registry/"
+            type: Directory
+{{- end }}

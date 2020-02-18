@@ -4,24 +4,12 @@ import (
     "fmt"
     "time"
     "errors"
-    "github.com/arturoguerra/xcpng-csi/pkg/utils"
+    "github.com/arturoguerra/xcpng-csi/pkg/errs"
     xenapi "github.com/terra-farm/go-xen-api-client"
 )
 
-func (c *xClient) Attach(label, mode, fstype, volumename string) (string, error) {
-    if fstype == "" {
-        fstype = "ext4"
-    }
-
-    var xmode xenapi.VbdMode
-    switch mode {
-    case "ro":
-        xmode = xenapi.VbdModeRO
-    case "rw":
-        xmode = xenapi.VbdModeRW
-    default:
-        return "", errors.New("Unkown ReadWrite Mode")
-    }
+func (c *xClient) Attach(volId, NodeLabel, rawMode, fstype string) (string, error) {
+    xmode := xenapi.VbdModeRW
 
     api, session, err := c.Connect()
     if err != nil {
@@ -30,12 +18,13 @@ func (c *xClient) Attach(label, mode, fstype, volumename string) (string, error)
 
     defer c.Close(api, session)
 
-    vm, err := c.GetVM(api, session, label)
+    vm, err := c.GetVM(api, session, NodeLabel)
     if err != nil {
-        return "", err
+        log.Error(err)
+        return "", errs.New(errs.InvalidNode)
     }
 
-    utils.Debug("VM.GetAllAllowedVBDDevices")
+    log.Info("VM.GetAllAllowedVBDDevices")
     vbdDevices, err := api.VM.GetAllowedVBDDevices(session, vm)
     if err != nil {
         return "", err
@@ -45,24 +34,17 @@ func (c *xClient) Attach(label, mode, fstype, volumename string) (string, error)
         return "", errors.New("No VBD Devices are available")
     }
 
-    utils.Debug("VDI.GetAllRecords")
-    vdis, err := api.VDI.GetAllRecords(session)
+    log.Info("VDI.GetByUUID")
+    vdiUUID, err := api.VDI.GetByUUID(session, volId)
     if err != nil {
         return "", err
     }
 
-    var vdiUUID xenapi.VDIRef
-    for ref, vdi := range vdis {
-        if vdi.NameLabel == volumename && !vdi.IsASnapshot {
-            vdiUUID = ref
-        }
-    }
-
     if string(vdiUUID) == "" {
-        return "", errors.New("Count not find VDI")
+        return "", errors.New(errs.InvalidVolume)
     }
 
-    utils.Debug("VBD.GetAllRecords")
+    log.Info("VBD.GetAllRecords")
     vbds, err := api.VBD.GetAllRecords(session)
     if err != nil {
         return "", err
@@ -70,7 +52,7 @@ func (c *xClient) Attach(label, mode, fstype, volumename string) (string, error)
 
     for ref, vbd := range vbds {
         if vbd.VDI == vdiUUID && vbd.CurrentlyAttached {
-            utils.Debug("Attempting to safely detach VDI")
+            log.Info("Attempting to safely detach VDI")
             time.Sleep(10 * time.Second)
             if err := c.DetachVBD(ref, api, session); err != nil {
                 return "", err
@@ -78,7 +60,7 @@ func (c *xClient) Attach(label, mode, fstype, volumename string) (string, error)
         }
     }
 
-    utils.Debug("VBD.Create")
+    log.Info("VBD.Create")
     vbdUUID, err := api.VBD.Create(session, xenapi.VBDRecord{
         Bootable:    false,
         Mode:        xmode,
@@ -92,12 +74,12 @@ func (c *xClient) Attach(label, mode, fstype, volumename string) (string, error)
         return "", err
     }
 
-    utils.Debug("VBD.Plug")
+    log.Info("VBD.Plug")
     if err = api.VBD.Plug(session, vbdUUID); err != nil {
         return "", err
     }
 
-    utils.Debug("VBD.GetDevice")
+    log.Info("VBD.GetDevice")
     device, err := api.VBD.GetDevice(session, vbdUUID)
     if err != nil {
         return "", err

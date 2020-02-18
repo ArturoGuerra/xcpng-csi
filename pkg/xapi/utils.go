@@ -2,35 +2,34 @@ package xapi
 
 import (
     "errors"
-    "github.com/arturoguerra/xcpng-csi/pkg/utils"
     xenapi "github.com/terra-farm/go-xen-api-client"
 )
 
 func (c *xClient) ForceDetachVBD(vbd xenapi.VBDRef, api *xenapi.Client, sess xenapi.SessionRef) error {
-    utils.Debug("VBD.Unplug")
+    log.Info("VBD.Unplug")
     if err := api.VBD.Unplug(sess, vbd); err != nil {
-        utils.Debug("VBD.UnplugForce")
+        log.Info("VBD.UnplugForce")
         if err := api.VBD.UnplugForce(sess, vbd); err != nil {
             return err
         }
     }
 
-    utils.Debug("VBD.Destory")
+    log.Info("VBD.Destory")
     return api.VBD.Destroy(sess, vbd)
 }
 
 func (c *xClient) DetachVBD(vbd xenapi.VBDRef, api *xenapi.Client, sess xenapi.SessionRef) error {
-    utils.Debug("VBD.Unplug")
+    log.Info("VBD.Unplug")
     if err := api.VBD.Unplug(sess, vbd); err != nil {
        return err
     }
 
-    utils.Debug("VBD.Destory")
+    log.Info("VBD.Destory")
     return api.VBD.Destroy(sess, vbd)
 }
 
 func (c *xClient) GetVM(api *xenapi.Client, sess xenapi.SessionRef, name string) (xenapi.VMRef, error) {
-    utils.Debug("VM.GetByNameLabel")
+    log.Info("VM.GetByNameLabel")
     vms, err := api.VM.GetByNameLabel(sess, name)
     if err != nil {
         return "", err

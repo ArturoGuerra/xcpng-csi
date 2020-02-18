@@ -44,6 +44,10 @@ spec:
         - name: {{ .name }}-controller
           image: {{ .image }}
           env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: CSI_ENDPOINT
               value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
             - name: CSI_MODE

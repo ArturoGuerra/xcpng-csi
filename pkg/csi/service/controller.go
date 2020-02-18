@@ -15,6 +15,7 @@ import (
     "context"
     "google.golang.org/grpc/status"
     "google.golang.org/grpc/codes"
+    "github.com/arturoguerra/xcpng-csi/pkg/errs"
     "github.com/container-storage-interface/spec/lib/go/csi"
 )
 
@@ -83,15 +84,48 @@ func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest
 }
 
 func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
-    return &csi.ControllerPublishVolumeResponse{}, nil
+    params, err := s.ParseParams(req.GetVolumeContext())
+    if err != nil {
+        log.Error(err)
+        return nil, status.Error(codes.InvalidArgument, "")
+    }
+
+    device, err := s.XClient.Attach(req.GetVolumeId(), req.GetNodeId(), "rw", params.FSType)
+    if err != nil {
+        log.Error(err)
+        switch err.Error() {
+        case errs.InvalidVolume:
+            return nil, status.Error(codes.NotFound, "")
+        case errs.InvalidNode:
+            return nil, status.Error(codes.NotFound, "")
+        case errs.AlreadyExists:
+            return nil, status.Error(codes.AlreadyExists, "")
+        default:
+            return nil, status.Error(codes.Internal, "")
+        }
+    }
+
+    log.Infof("VM Device: %s", device)
+
+    context := req.GetVolumeContext()
+    context["device"] = device
+
+    return &csi.ControllerPublishVolumeResponse{
+        PublishContext: context,
+    }, nil
 }
 
 func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
+    if err := s.XClient.Detach(req.GetVolumeId(), req.GetNodeId()); err != nil {
+        log.Error(err)
+        return nil, status.Error(codes.NotFound, "")
+    }
+
     return &csi.ControllerUnpublishVolumeResponse{}, nil
 }
 
 func (s *service) ValidateVolumeCapabilities(ctx context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
-    return &csi.ValidateVolumeCapabilitiesResponse{}, nil
+    return nil, status.Error(codes.Unimplemented, "")
 }
 
 
@@ -101,12 +135,9 @@ func (s *service) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) 
     return nil, status.Error(codes.Unimplemented, "")
 }
 
-
 func (s *service) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
     return nil, status.Error(codes.Unimplemented, "")
 }
-
-
 
 func (s *service) CreateSnapshot(ctx context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
     return nil, status.Error(codes.Unimplemented, "")

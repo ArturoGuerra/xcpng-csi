@@ -19,6 +19,7 @@ import (
 )
 
 func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
+    log.Info("Getting Node Capabilities")
     return &csi.NodeGetCapabilitiesResponse{}, nil
 }
 
@@ -39,7 +40,10 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
 }
 
 func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
-    return &csi.NodeGetInfoResponse{}, nil
+    log.Infof("Getting Node Info")
+    return &csi.NodeGetInfoResponse{
+        NodeId: s.NodeID,
+    }, nil
 }
 
 func (s *service) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
