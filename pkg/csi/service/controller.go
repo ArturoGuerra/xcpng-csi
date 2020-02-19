@@ -107,11 +107,10 @@ func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.Controll
 
     log.Infof("VM Device: %s", device)
 
-    context := req.GetVolumeContext()
-    context["device"] = device
-
     return &csi.ControllerPublishVolumeResponse{
-        PublishContext: context,
+        PublishContext: map[string]string{
+            "device": device,
+        },
     }, nil
 }
 

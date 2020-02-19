@@ -53,9 +53,16 @@ spec:
             - name: mountpoint-dir
               mountPath: /var/lib/kubelet/pods
               mountPropagation: "Bidirectional"
+            - name: device-dir
+              mountPath: /dev
+              mountPropagation: "Bidirectional"
           securityContext:
             privileged: true
       volumes:
+        - name: device-dir
+          hostPath:
+            path: "/dev"
+            type: Directory
         - name: socket-dir
           hostPath:
             path: "/var/lib/kubelet/plugins/csi.xcpng.arturonet.com/"
