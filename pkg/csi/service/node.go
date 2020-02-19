@@ -21,7 +21,6 @@ import (
 )
 
 func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
-    log.Info("Getting Node Capabilities")
     return &csi.NodeGetCapabilitiesResponse{
         Capabilities: []*csi.NodeServiceCapability{
             {
@@ -50,8 +49,6 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
         return nil, status.Error(codes.NotFound, "")
     }
 
-    log.Infof("Mounting Device: [%s], Path: (%s)", device, stagingTargetPath)
-
     /* Check if path exists */
     notPath, err := mounter.IsNotExist(stagingTargetPath)
     if notPath {
@@ -62,7 +59,6 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
         }
     }
 
-    log.Info("Formating and/or mounting..")
     opts := ""
     if err := mounter.FormatAndMount(device, stagingTargetPath, params.FSType, opts); err != nil {
         log.Error(err)
@@ -92,8 +88,6 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 
 // Bind Mounts from staging to pod mount path
 func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
-    log.Info("Running NodePublishVolume")
-
     stagingTargetPath := req.GetStagingTargetPath()
     targetPath := req.GetTargetPath()
 
@@ -107,7 +101,6 @@ func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVol
         return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Target Path must be provided")
     }
 
-    log.Infof("Bind Mounting Volume: (%s) to Path: (%s)", stagingTargetPath, targetPath)
 
     /* Check if target is a path and creates it if its not */
     notPath, err := mounter.IsNotExist(targetPath)
@@ -129,7 +122,7 @@ func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVol
         return nil, status.Error(codes.Internal, err.Error())
     }
 
-    log.Infof("Bind Mounted: %s", targetPath)
+    log.Infof("Bind Mounted Volume: (%s) to Path: (%s)", stagingTargetPath, targetPath)
     return &csi.NodePublishVolumeResponse{}, nil
 }
 
@@ -148,7 +141,6 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
 }
 
 func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
-    log.Infof("Getting Node Info")
     return &csi.NodeGetInfoResponse{
         NodeId: s.NodeID,
     }, nil
