@@ -2,13 +2,12 @@ package xapi
 
 import (
     "fmt"
-    "time"
     "errors"
     "github.com/arturoguerra/xcpng-csi/pkg/errs"
     xenapi "github.com/terra-farm/go-xen-api-client"
 )
 
-func (c *xClient) Attach(volId, NodeLabel, rawMode, fstype string) (string, error) {
+func (c *xClient) Attach(volId, NodeID, rawMode, fstype string) (string, error) {
     xmode := xenapi.VbdModeRW
 
     api, session, err := c.Connect()
@@ -18,7 +17,7 @@ func (c *xClient) Attach(volId, NodeLabel, rawMode, fstype string) (string, erro
 
     defer c.Close(api, session)
 
-    vm, err := c.GetVM(api, session, NodeLabel)
+    vm, err := c.GetVM(api, session, NodeID)
     if err != nil {
         log.Error(err)
         return "", errs.New(errs.InvalidNode)
@@ -53,7 +52,6 @@ func (c *xClient) Attach(volId, NodeLabel, rawMode, fstype string) (string, erro
     for ref, vbd := range vbds {
         if vbd.VDI == vdiUUID && vbd.CurrentlyAttached {
             log.Info("Attempting to safely detach VDI")
-            time.Sleep(10 * time.Second)
             if err := c.DetachVBD(ref, api, session); err != nil {
                 return "", err
             }

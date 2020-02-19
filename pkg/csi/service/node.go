@@ -22,7 +22,17 @@ import (
 
 func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
     log.Info("Getting Node Capabilities")
-    return &csi.NodeGetCapabilitiesResponse{}, nil
+    return &csi.NodeGetCapabilitiesResponse{
+        Capabilities: []*csi.NodeServiceCapability{
+            {
+                Type: &csi.NodeServiceCapability_Rpc{
+                    Rpc: &csi.NodeServiceCapability_RPC{
+                        Type: csi.NodeServiceCapability_RPC_STAGE_UNSTAGE_VOLUME,
+                    },
+                },
+            },
+        },
+    }, nil
 }
 
 // Mounts to a common directory for pods to bind mount to
@@ -52,7 +62,7 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
         }
     }
 
-    log.Infof("Formating and/or mounting..")
+    log.Info("Formating and/or mounting..")
     opts := ""
     if err := mounter.FormatAndMount(device, stagingTargetPath, params.FSType, opts); err != nil {
         log.Error(err)
@@ -61,7 +71,7 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
             fmt.Sprintf("Error when mounting Device: %s, Path: %s, FSType: %s, Error: %v", device, stagingTargetPath, params.FSType, err),
         )
     }
-
+    log.Infof("Mounted Device: [%s] to General Path: (%s)", device, stagingTargetPath)
     return &csi.NodeStageVolumeResponse{}, nil
 }
 
@@ -72,7 +82,7 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
         return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Staging Target Path must be provided")
     }
 
-    log.Infof("Unmounting: (%s)", stagingTargetPath)
+    log.Infof("Unmounting Global Path: (%s)", stagingTargetPath)
     if err := mounter.Unmount(stagingTargetPath); err != nil {
         log.Error(err)
     }
@@ -82,20 +92,22 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 
 // Bind Mounts from staging to pod mount path
 func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+    log.Info("Running NodePublishVolume")
+
     stagingTargetPath := req.GetStagingTargetPath()
     targetPath := req.GetTargetPath()
-    params, err := s.ParseParams(req.GetVolumeContext())
-    if err != nil {
-        return nil, status.Error(codes.InvalidArgument, err.Error())
-    }
 
     if len(stagingTargetPath) == 0 {
+        log.Infof("Missing staging target path: %s", stagingTargetPath)
         return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Staging Target Path must be provided")
     }
 
     if len(targetPath) == 0 {
+        log.Infof("Missing target path: %s", targetPath)
         return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Target Path must be provided")
     }
+
+    log.Infof("Bind Mounting Volume: (%s) to Path: (%s)", stagingTargetPath, targetPath)
 
     /* Check if target is a path and creates it if its not */
     notPath, err := mounter.IsNotExist(targetPath)
@@ -112,13 +124,13 @@ func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVol
     }
 
     opts := ""
-    if err = mounter.BindMount(stagingTargetPath, targetPath, params.FSType, opts); err != nil {
+    if err = mounter.BindMount(stagingTargetPath, targetPath, "auto", opts); err != nil {
         log.Error(err)
         return nil, status.Error(codes.Internal, err.Error())
     }
 
-    log.Infof("Mounted: %s", targetPath)
-    return nil, status.Error(codes.NotFound, "")
+    log.Infof("Bind Mounted: %s", targetPath)
+    return &csi.NodePublishVolumeResponse{}, nil
 }
 
 func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
@@ -142,10 +154,11 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
     }, nil
 }
 
+func (s *service) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
+    return nil, status.Error(codes.Unimplemented, "")
+}
+
 func (s *service) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
     return nil, status.Error(codes.Unimplemented, "")
 }
 
-func (s *service) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
-}

@@ -1,32 +1,29 @@
 package xapi
 
 import (
-    xenapi "github.com/terra-farm/go-xen-api-client"
+    "errors"
 )
 
-func (c *xClient) Detach(volname, nodename string) error {
+func (c *xClient) Detach(volId, nodeID string) error {
     api, session, err := c.Connect()
     if err != nil {
         return err
     }
     defer c.Close(api, session)
 
-    vm, err := c.GetVM(api, session, nodename)
+    vm, err := c.GetVM(api, session, nodeID)
     if err != nil {
         return err
     }
 
-    log.Info("VDI.GetAllRecords")
-    vdis, err := api.VDI.GetAllRecords(session)
+    log.Info("VDI.GetByUUID")
+    vdiUUID, err := api.VDI.GetByUUID(session, volId)
     if err != nil {
         return err
     }
 
-    var vdiUUID xenapi.VDIRef
-    for ref, vdi := range vdis {
-        if vdi.NameLabel == volname && !vdi.IsASnapshot {
-            vdiUUID = ref
-        }
+    if string(vdiUUID) == "" {
+        return errors.New("Invalid Volume")
     }
 
     log.Info("VBD.GetAllRecords")

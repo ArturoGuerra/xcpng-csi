@@ -1,11 +1,11 @@
-FROM golang:alpine AS builder
+FROM golang:buster AS builder
 
 WORKDIR /build
 COPY . .
-RUN apk add --update make
+RUN apt update && apt install make
 RUN make
 
-FROM alpine:latest
+FROM debian:buster
 WORKDIR /app
 COPY --from=builder /build/bin/xcpng-csi /app
 

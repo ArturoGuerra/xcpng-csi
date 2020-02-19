@@ -124,7 +124,14 @@ func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.Contro
 }
 
 func (s *service) ValidateVolumeCapabilities(ctx context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
+    log.Info("Validating VolumeCapabilities")
+    return &csi.ValidateVolumeCapabilitiesResponse{
+		Confirmed: &csi.ValidateVolumeCapabilitiesResponse_Confirmed{
+			VolumeContext:      req.GetVolumeContext(),
+			VolumeCapabilities: req.GetVolumeCapabilities(),
+			Parameters:         req.GetParameters(),
+		},
+	}, nil
 }
 
 

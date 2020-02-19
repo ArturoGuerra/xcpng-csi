@@ -17,8 +17,9 @@ spec:
       containers:
         # Node Registration
         - name: csi-driver-registrar
-          image: quay.io/k8scsi/csi-node-driver-registrar:canary
+          image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
           args:
+            - "-v=10"
             - "--csi-address=/csi/csi.sock"
             - "--kubelet-registration-path=/var/lib/kubelet/plugins/csi.xcpng.arturonet.com/csi.sock"
           lifecycle:
@@ -27,9 +28,9 @@ spec:
                 command: ["/bin/sh", "-c", "rm -rf /registration/csi.xcpng.arturonet.com /registration/csi.xcpng.arturonet.com-reg.sock"]
           volumeMounts:
             - name: socket-dir
-              mountPath: "/csi"
+              mountPath: /csi
             - name: registration-dir
-              mountPath: "/registration"
+              mountPath: /registration
           securityContext:
             privileged: true
         #Node
@@ -44,6 +45,12 @@ spec:
               value: /csi/csi.sock
             - name: CSI_MODE
               value: node
+            # Fixes bug where goCSI was returning InvalidArgument on NodePublishVolume
+            - name: X_CSI_SPEC_DISABLE_LEN_CHECK
+              value: "false"
+            # Fixes bug where goCSI was returning InvalidArgument on NodePublishVolume
+            - name: X_CSI_SPEC_REQ_VALIDATION
+              value: "false"
           envFrom:
             - configMapRef:
                 name: {{ .name }}-config
@@ -52,27 +59,33 @@ spec:
               mountPath: /csi
             - name: mountpoint-dir
               mountPath: /var/lib/kubelet/pods
-              mountPropagation: "Bidirectional"
+              mountPropagation: Bidirectional
             - name: device-dir
               mountPath: /dev
-              mountPropagation: "Bidirectional"
+            - name: plugins-dir
+              mountPath: /var/lib/kubelet/plugins
+              mountPropagation: Bidirectional
           securityContext:
             privileged: true
       volumes:
         - name: device-dir
           hostPath:
-            path: "/dev"
+            path: /dev
             type: Directory
+        - name: plugins-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins
+            type: DirectoryOrCreate
         - name: socket-dir
           hostPath:
-            path: "/var/lib/kubelet/plugins/csi.xcpng.arturonet.com/"
+            path: /var/lib/kubelet/plugins/csi.xcpng.arturonet.com
             type: DirectoryOrCreate
         - name: mountpoint-dir
           hostPath:
-            path: "/var/lib/kubelet/pods/"
-            type: Directory
+            path: /var/lib/kubelet/pods
+            type: DirectoryOrCreate
         - name: registration-dir
           hostPath:
-            path: "/var/lib/kubelet/plugins_registry/"
+            path: /var/lib/kubelet/plugins_registry
             type: Directory
 {{- end }}
