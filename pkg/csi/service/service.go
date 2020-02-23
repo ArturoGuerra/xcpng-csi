@@ -1,7 +1,10 @@
 package service
 
 import (
+    "os"
     "sync"
+    "strings"
+    "github.com/rexray/gocsi"
     "github.com/arturoguerra/go-logging"
     "gopkg.in/go-playground/validator.v8"
     "github.com/container-storage-interface/spec/lib/go/csi"
@@ -12,6 +15,7 @@ import (
 const (
     Name = "csi.xcpng.arturonet.com"
     VendorVersion = "1.0.0"
+    UnixSocketPrefix = "unix://"
 )
 
 var Manifest = map[string]string{
@@ -23,6 +27,16 @@ var (
     gigabyte = 1024 * 1024 * 1024
     minSize  = 5 * gigabyte
 )
+
+// Work around if node dies and old csi.sock is left behind.
+// NOTE: This can cause issues if two instances of a node are scheduled in the same node but that would be an extreme edge case.
+func init() {
+    sockPath := os.Getenv(gocsi.EnvVarEndpoint)
+    sockPath = strings.TrimPrefix(sockPath, UnixSocketPrefix)
+    if len(sockPath) > 1 {
+        os.Remove(sockPath)
+    }
+}
 
 type (
     Service interface {
