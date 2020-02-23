@@ -37,6 +37,11 @@ spec:
         - name: {{ .name }}-node
           image: {{ .image }}
           env:
+            - name: XCPNG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secret }}
+                  key: xcpng-password
             - name: NODE_ID
               valueFrom:
                 fieldRef:
@@ -53,7 +58,7 @@ spec:
               value: "false"
           envFrom:
             - configMapRef:
-                name: {{ .name }}-config
+                name: {{ .config }}
           volumeMounts:
             - name: socket-dir
               mountPath: /csi

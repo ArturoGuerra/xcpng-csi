@@ -5,3 +5,4 @@
 name: xcpng-csi
 image: arturoguerra/xcpng-csi:latest
 config: xcpng-csi-config
+secret: xcpng-csi-secret

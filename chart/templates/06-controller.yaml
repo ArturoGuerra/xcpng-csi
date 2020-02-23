@@ -44,6 +44,11 @@ spec:
         - name: {{ .name }}-controller
           image: {{ .image }}
           env:
+            - name: XCPNG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secret }}
+                  key: xcpng-password
             - name: NODE_ID
               valueFrom:
                 fieldRef:
@@ -54,7 +59,7 @@ spec:
               value: controller
           envFrom:
             - configMapRef:
-                name: {{ .name }}-config
+                name: {{ .config }}
           volumeMounts:
             - name: socket
               mountPath: /var/lib/csi/sockets/pluginproxy

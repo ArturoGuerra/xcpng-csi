@@ -1,0 +1,6 @@
+Create ConfigMap called {{ .Values.config }} with the following values:
+XCPNG_HOST: "hostname/ip"
+XCPNG_USERNAME: "XCP-ng Username"
+
+Create Secret called {{ .Values.secret }} with the following values:
+xcpng-password: "XCP-ng password"
