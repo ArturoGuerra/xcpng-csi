@@ -36,6 +36,10 @@ spec:
         #Node
         - name: {{ .name }}-node
           image: {{ .image }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "rm -rf /csi/csi.sock"]
           env:
             - name: XCPNG_PASSWORD
               valueFrom:

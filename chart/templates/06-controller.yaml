@@ -63,6 +63,9 @@ spec:
           volumeMounts:
             - name: socket
               mountPath: /var/lib/csi/sockets/pluginproxy
+      # Will only be scheduled on a master node
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
       volumes:
         - name: socket
           emptyDir: {}
