@@ -1,11 +1,7 @@
 package service
 
 import (
-    //"fmt"
-    //"strings"
-    //"sync"
-    //"sync/atomic"
-    //"//github.com/golang/protobuf/ptypes"
+    "sync"
     "github.com/arturoguerra/go-logging"
     "gopkg.in/go-playground/validator.v8"
     "github.com/container-storage-interface/spec/lib/go/csi"
@@ -38,6 +34,10 @@ type (
     service struct {
         XClient  xapi.XClient
         NodeID   string
+        /* CreateVolume */
+        CVMux    sync.Mutex
+        /* ControllerPublishVolume */
+        PVMux    sync.Mutex
     }
 
     Params struct {

@@ -42,6 +42,9 @@ func (s *service) ControllerGetCapabilities(ctx context.Context, req *csi.Contro
 }
 
 func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
+    /* Locks to ensure we don't get double volume creating something that has happened */
+    s.CVMux.Lock()
+    defer s.CVMux.Unlock()
     name := req.GetName()
     params, err := s.ParseParams(req.GetParameters())
     if err != nil {
@@ -84,6 +87,8 @@ func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest
 }
 
 func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
+    s.PVMux.Lock()
+    defer s.PVMux.Unlock()
     params, err := s.ParseParams(req.GetVolumeContext())
     if err != nil {
         log.Error(err)
