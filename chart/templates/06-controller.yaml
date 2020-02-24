@@ -16,6 +16,17 @@ spec:
     spec:
       serviceAccount: xcpng-csi
       containers:
+        # Liveness-probe
+        - name: liveness-probe
+          image: quay.io/k8scsi/livenessprobe:v1.1.0
+          args:
+            - "--csi-address=$(ADDRESS)"
+          env:
+            - name: ADDRESS
+              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+          volumeMounts:
+            - name: socket
+              mountPath: /var/lib/csi/sockets/pluginproxy
         # CSI Provisioner
         - name: csi-provisioner
           image: quay.io/k8scsi/csi-provisioner:v1.5.0
@@ -43,6 +54,19 @@ spec:
         # Controller
         - name: {{ .name }}-controller
           image: {{ .image }}
+          ports:
+            - name: healthz
+              protocol: TCP
+              containerPort: 9808
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /healthz
+              port: healthz
+            initialDelaySeconds: 10
+            timeoutSeconds: 3
+            periodSeconds: 2
+
           env:
             - name: XCPNG_PASSWORD
               valueFrom:

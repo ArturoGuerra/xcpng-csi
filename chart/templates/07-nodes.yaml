@@ -15,6 +15,15 @@ spec:
         app: {{ .name }}-node
     spec:
       containers:
+        # Liveness probe
+        - name: liveness-probe
+          image: quay.io/k8scsi/livenessprobe:v1.1.0
+          imagePullPolicy: Always
+          args:
+            - "--csi-address=/csi/csi.sock"
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
         # Node Registration
         - name: csi-driver-registrar
           image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
@@ -36,10 +45,18 @@ spec:
         #Node
         - name: {{ .name }}-node
           image: {{ .image }}
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "rm -rf /csi/csi.sock"]
+          ports:
+            - name: healthz
+              protocol: TCP
+              containerPort: 9808
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /healthz
+              port: healthz
+            initialDelaySeconds: 10
+            timeoutSeconds: 3
+            periodSeconds: 2
           env:
             - name: XCPNG_PASSWORD
               valueFrom:
@@ -54,9 +71,6 @@ spec:
               value: /csi/csi.sock
             - name: CSI_MODE
               value: node
-            # Fixes bug where goCSI was returning InvalidArgument on NodePublishVolume
-            - name: X_CSI_SPEC_DISABLE_LEN_CHECK
-              value: "false"
             # Fixes bug where goCSI was returning InvalidArgument on NodePublishVolume
             - name: X_CSI_SPEC_REQ_VALIDATION
               value: "false"
