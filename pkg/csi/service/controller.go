@@ -89,6 +89,7 @@ func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest
 func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
     s.PVMux.Lock()
     defer s.PVMux.Unlock()
+    log.Info("Running ControllerPublishVolume")
     params, err := s.ParseParams(req.GetVolumeContext())
     if err != nil {
         log.Error(err)
@@ -120,9 +121,15 @@ func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.Controll
 }
 
 func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
+    log.Info("Running ControllerUnpublishVolume")
     if err := s.XClient.Detach(req.GetVolumeId(), req.GetNodeId()); err != nil {
         log.Error(err)
-        return nil, status.Error(codes.NotFound, "")
+        /*
+           Temp fix for an issue where kubernetes calls this twice causing the pv to stay in Terminating
+           TODO: Implement error filtering for when a volume is not found
+        */
+        return &csi.ControllerUnpublishVolumeResponse{}, nil
+        /*return nil, status.Error(codes.NotFound, "")*/
     }
 
     return &csi.ControllerUnpublishVolumeResponse{}, nil
@@ -143,6 +150,7 @@ func (s *service) ValidateVolumeCapabilities(ctx context.Context, req *csi.Valid
 // Unimplemented
 
 func (s *service) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
+    log.Info("Running ListVolumes")
     return nil, status.Error(codes.Unimplemented, "")
 }
 

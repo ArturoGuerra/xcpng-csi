@@ -36,6 +36,7 @@ func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapab
 
 // Mounts to a common directory for pods to bind mount to
 func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
+    log.Info("Running NodeStageVolume")
     stagingTargetPath := req.GetStagingTargetPath()
     publishContext := req.GetPublishContext()
     params, err := s.ParseParams(req.GetVolumeContext())
@@ -72,6 +73,7 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
 }
 
 func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
+    log.Info("Running NodeUnstageVolume")
     stagingTargetPath := req.GetStagingTargetPath()
 
     if len(stagingTargetPath) == 0 {
@@ -88,6 +90,7 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 
 // Bind Mounts from staging to pod mount path
 func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+    log.Info("Running NodePublishVolume")
     stagingTargetPath := req.GetStagingTargetPath()
     targetPath := req.GetTargetPath()
 
@@ -127,6 +130,7 @@ func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVol
 }
 
 func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
+    log.Info("Running NodeUnpublishVolume")
     targetPath := req.GetTargetPath()
     if len(targetPath) == 0 {
         return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume Target Path must be provided")
