@@ -2,7 +2,7 @@
 
 GOBUILD = go build
 APPNAME = xcpng-csi
-
+DOCKER = docker
 all: clean build
 
 clean:
@@ -13,10 +13,10 @@ build:
 
 docker-build:
 	test $(DOCKERREPO)
-	docker build . -t $(DOCKERREPO)
+	$(DOCKER) build . -t $(DOCKERREPO)
 
 docker-push:
 	test $(DOCKERREPO)
-	docker push $(DOCKERREPO)
+	$(DOCKER) push $(DOCKERREPO)
 
 docker: docker-build docker-push
