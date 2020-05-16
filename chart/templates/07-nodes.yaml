@@ -1,18 +1,17 @@
-{{- with .Values }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ .name }}-node
+  name: {{ template "node" . }}
   labels:
-    app: {{ .name }}-node
+    app: {{ template "node" . }}
 spec:
   selector:
     matchLabels:
-      app: {{ .name }}-node
+      app: {{ template "node" . }}
   template:
     metadata:
       labels:
-        app: {{ .name }}-node
+        app: {{ template "name" . }}
     spec:
       containers:
         # Liveness probe
@@ -43,8 +42,8 @@ spec:
           securityContext:
             privileged: true
         #Node
-        - name: {{ .name }}-node
-          image: {{ .image }}
+        - name: node
+          image: {{ template "image" . }}
           ports:
             - name: healthz
               protocol: TCP
@@ -61,7 +60,7 @@ spec:
             - name: XCPNG_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secret }}
+                  name: {{ template "secret" . }}
                   key: xcpng-password
             - name: NODE_ID
               valueFrom:
@@ -76,7 +75,7 @@ spec:
               value: "false"
           envFrom:
             - configMapRef:
-                name: {{ .config }}
+                name: {{ template "config" . }}
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
@@ -111,4 +110,3 @@ spec:
           hostPath:
             path: /var/lib/kubelet/plugins_registry
             type: Directory
-{{- end }}

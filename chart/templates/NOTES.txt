@@ -1,6 +1,8 @@
-Create ConfigMap called {{ .Values.config }} with the following values:
-XCPNG_HOST: "hostname/ip"
-XCPNG_USERNAME: "XCP-ng Username"
+Config located at {{ template "config" . }} edit values according to your cluster settings:
+{{ toYaml .Values.config | indent 4 }}
 
-Create Secret called {{ .Values.secret }} with the following values:
+
+{{- if not .Values.secretName }}
+Create Secret called {{ template "secret" . }} with the following values:
 xcpng-password: "XCP-ng password"
+{{- end }}

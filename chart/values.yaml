@@ -2,7 +2,14 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-name: xcpng-csi
-image: arturoguerra/xcpng-csi:latest
-config: xcpng-csi-config
-secret: xcpng-csi-secret
+image:
+    repository: arturoguerra/xcpng-csi
+    tag: latest
+
+# configName: "Existing Config Name"
+config:
+    XCPNG_HOST: "Hostname / IP Address of XCP-NG Server"
+    XCPNG_USERNAME: "Username of server"
+
+# secretName: "Existing secret Name"
+# serviceAccount: "Account Name"

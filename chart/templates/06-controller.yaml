@@ -1,20 +1,17 @@
-{{- with .Values }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .name }}-controller
-  labels:
-    app: {{ .name }}-controller
+  name: {{ template "controller" . }}
 spec:
   selector:
     matchLabels:
-      app: {{ .name }}-controller
+      app: {{ template "controller" . }}
   template:
     metadata:
       labels:
-        app: {{ .name }}-controller
+        app: {{ template "controller" . }}
     spec:
-      serviceAccount: xcpng-csi
+      serviceAccount: {{ template "serviceAccount" .}}
       containers:
         # Liveness-probe
         - name: liveness-probe
@@ -52,8 +49,8 @@ spec:
             - name: socket
               mountPath: /var/lib/csi/sockets/pluginproxy
         # Controller
-        - name: {{ .name }}-controller
-          image: {{ .image }}
+        - name: controller
+          image: {{ template "image" . }}
           ports:
             - name: healthz
               protocol: TCP
@@ -71,7 +68,7 @@ spec:
             - name: XCPNG_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .secret }}
+                  name: {{ template "secret" . }}
                   key: xcpng-password
             - name: NODE_ID
               valueFrom:
@@ -83,14 +80,10 @@ spec:
               value: controller
           envFrom:
             - configMapRef:
-                name: {{ .config }}
+                name: {{ template "config" . }}
           volumeMounts:
             - name: socket
               mountPath: /var/lib/csi/sockets/pluginproxy
-      # Will only be scheduled on a master node
-      nodeSelector:
-        node-role.kubernetes.io/master: ""
       volumes:
         - name: socket
           emptyDir: {}
-{{- end }}
