@@ -75,24 +75,30 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
         },
     }
 
-    var volumeTopology = make(map[string]string)
-
-    // zoneRequirements := req.GetAccessibilityRequirements()
     // zoneRequirements.Requisite []*Topology
-    // zoneRequirements.Requisite []*Preferred
-    // Topology { Segments: ma[string]string }
-    
-    if (s.Zone != "") {
+    // zoneRequirements.Preferred []*Topology
+    // Topology { Segments: map[string]string }
+
+    zoneRequirements := req.GetAccessibilityRequirements()
+
+    topologies := make([]*csi.Topology, 0)
+
+    if (zoneRequirements != nil) {
+        topologies = zoneRequirements.Requisite
+    } else if (s.Zone != "") {
+       volumeTopology := make(map[string]string)
        volumeTopology["topology.kubernetes.io/zone"] = s.Zone
        volumeTopology["failure-domain.beta.kubernetes.io/zone"] = s.Zone
+
+       t := &csi.Topology{
+           Segments: volumeTopology,
+       }
+
+       topologies = append(topologies, t)
     }
 
-    if len(volumeTopology) != 0 {
-        vTopology := &csi.Topology{
-            Segments: volumeTopology,
-        }
-
-        resp.Volume.AccessibleTopology = append(resp.Volume.AccessibleTopology, vTopology)
+    if len(topologies) != 0 {
+        resp.Volume.AccessibleTopology = append(resp.Volume.AccessibleTopology, topologies...)
     }
 
     return resp, nil

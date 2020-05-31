@@ -4,8 +4,8 @@
 
 image:
     repository: arturoguerra/xcpng-csi
-    tag: v1.1.2
-
+    tag: v1.1.3
+    
 config:
     XCPNG_HOST: "Hostname / IP Address of XCP-NG Server"
     XCPNG_USERNAME: "Username of server"
