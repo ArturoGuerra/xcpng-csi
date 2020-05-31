@@ -25,11 +25,18 @@ func (s *service) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginC
     log.Info("Getting Plugin Capabilities")
     return &csi.GetPluginCapabilitiesResponse{
         Capabilities: []*csi.PluginCapability{
-            &csi.PluginCapability{
+            {
                 Type: &csi.PluginCapability_Service_{
                     Service: &csi.PluginCapability_Service{
                         Type: csi.PluginCapability_Service_CONTROLLER_SERVICE,
                     },
+                },
+            },
+            {
+				Type: &csi.PluginCapability_Service_{
+					Service: &csi.PluginCapability_Service{
+						Type: csi.PluginCapability_Service_VOLUME_ACCESSIBILITY_CONSTRAINTS,
+					},
                 },
             },
         },

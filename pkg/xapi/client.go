@@ -13,6 +13,7 @@ type (
         IsAttached(string, string) (bool, error)
         CreateVolume(string, string, string, int) (string, error)
         DeleteVolume(string) error
+        ValidNode(string) (bool, error)
     }
 
     xClient struct {

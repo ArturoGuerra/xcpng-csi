@@ -2,11 +2,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ template "serviceAccount" . }}-binding
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ template "namespace" . }}
 subjects:
   - kind: ServiceAccount
     name: {{ template "serviceAccount" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ template "namespace" . }}
 roleRef:
   kind: Role
   name: {{ template "serviceAccount" . }}-role

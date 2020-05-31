@@ -35,6 +35,6 @@ func main() {
         service.Name,
         "CSI Driver for XCP-ng",
         "",
-        provider.New(xclient, cfg.NodeID),
+        provider.New(xclient, cfg.NodeID, cfg.Zone),
     )
 }

@@ -2,7 +2,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: {{ template "config" . }}
+    name: {{ template "name" . }}
+    namespace: {{ template "namespace" . }}
 data:
 {{ toYaml .Values.config | indent 4 }}
 {{- end }}

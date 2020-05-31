@@ -48,6 +48,7 @@ type (
     service struct {
         XClient  xapi.XClient
         NodeID   string
+        Zone     string
         /* CreateVolume */
         CVMux    sync.Mutex
         /* ControllerPublishVolume */
@@ -76,9 +77,10 @@ func (s *service) ParseParams(items map[string]string) (*Params, error) {
     return &params, nil
 }
 
-func New(xclient xapi.XClient, nodeid string) Service {
+func New(xclient xapi.XClient, nodeid, zone string) Service {
     return &service{
         XClient: xclient,
         NodeID:  nodeid,
+        Zone:    zone,
     }
 }

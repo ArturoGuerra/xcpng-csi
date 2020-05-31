@@ -67,13 +67,35 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
         return nil, status.Error(codes.Internal, "")
     }
 
-    return &csi.CreateVolumeResponse{
+    resp := &csi.CreateVolumeResponse{
         Volume: &csi.Volume{
             VolumeId: VolId,
             CapacityBytes: volSizeBytes,
             VolumeContext: req.GetParameters(),
         },
-    }, nil
+    }
+
+    var volumeTopology = make(map[string]string)
+
+    // zoneRequirements := req.GetAccessibilityRequirements()
+    // zoneRequirements.Requisite []*Topology
+    // zoneRequirements.Requisite []*Preferred
+    // Topology { Segments: ma[string]string }
+    
+    if (s.Zone != "") {
+       volumeTopology["topology.kubernetes.io/zone"] = s.Zone
+       volumeTopology["failure-domain.beta.kubernetes.io/zone"] = s.Zone
+    }
+
+    if len(volumeTopology) != 0 {
+        vTopology := &csi.Topology{
+            Segments: volumeTopology,
+        }
+
+        resp.Volume.AccessibleTopology = append(resp.Volume.AccessibleTopology, vTopology)
+    }
+
+    return resp, nil
 }
 
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {

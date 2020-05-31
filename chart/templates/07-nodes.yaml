@@ -2,8 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ template "node" . }}
-  labels:
-    app: {{ template "node" . }}
+  namespace: {{ template "namespace" . }}
 spec:
   selector:
     matchLabels:
@@ -75,7 +74,7 @@ spec:
               value: "false"
           envFrom:
             - configMapRef:
-                name: {{ template "config" . }}
+                name: {{ template "name" . }}
           volumeMounts:
             - name: socket-dir
               mountPath: /csi

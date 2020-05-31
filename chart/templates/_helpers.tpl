@@ -7,7 +7,7 @@
 {{- end -}}
 
 {{- define "controller" -}}
-{{ .Release.Name }}
+{{ printf "%s-controller" .Release.Name }}
 {{- end -}}
 
 {{- define "node" -}}
@@ -18,10 +18,10 @@
 {{ default .Release.Name .Values.serviceAcocunt }}
 {{- end -}}
 
-{{- define "config" -}}
-{{ default .Release.Name .Values.configName }}
-{{- end -}}
-
 {{- define "secret" -}}
 {{ default .Release.Name .Values.secretName }}
+{{- end -}}
+
+{{- define "namespace" -}}
+{{ .Release.Namespace }}
 {{- end -}}

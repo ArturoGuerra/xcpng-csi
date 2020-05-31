@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "controller" . }}
+  namespace: {{ template "namespace" . }}
 spec:
   selector:
     matchLabels:
@@ -30,6 +31,8 @@ spec:
           args:
             - "--csi-address=$(ADDRESS)"
             - "--enable-leader-election"
+            - "--feature-gates=Topology=true"
+            - "--strict-topology"
           env:
             - name: ADDRESS
               value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
@@ -80,7 +83,7 @@ spec:
               value: controller
           envFrom:
             - configMapRef:
-                name: {{ template "config" . }}
+                name: {{ template "name" . }}
           volumeMounts:
             - name: socket
               mountPath: /var/lib/csi/sockets/pluginproxy

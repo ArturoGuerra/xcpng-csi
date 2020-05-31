@@ -4,12 +4,12 @@
 
 image:
     repository: arturoguerra/xcpng-csi
-    tag: latest
+    tag: v1.1.2
 
-# configName: "Existing Config Name"
 config:
     XCPNG_HOST: "Hostname / IP Address of XCP-NG Server"
     XCPNG_USERNAME: "Username of server"
+    XCPNG_ZONE: "XCPNG Server identifier probably use the hostname/server name"
 
 # secretName: "Existing secret Name"
 # serviceAccount: "Account Name"

@@ -144,9 +144,30 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
     return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
-func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
+func(s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
+    topology := new(csi.Topology)    
+
+    /*
+    failure-domain.beta.kubernetes.io/zone
+    topology.kubernetes.io/zone
+    */
+    AccessibleTopology := make(map[string]string)
+
+    if (s.Zone != "") {
+        if valid, _ := s.XClient.ValidNode(s.NodeID); valid {
+            log.Infof("Adding Zone %s to Node %s", s.Zone, s.NodeID)
+            AccessibleTopology["topology.kubernetes.io/zone"] = s.Zone
+            AccessibleTopology["failure-domain.beta.kubernetes.io/zone"] = s.Zone
+        }
+    }
+
+    if len(AccessibleTopology) > 0 {
+        topology.Segments = AccessibleTopology
+    }
+
     return &csi.NodeGetInfoResponse{
         NodeId: s.NodeID,
+        AccessibleTopology: topology,
     }, nil
 }
 
@@ -157,4 +178,3 @@ func (s *service) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolume
 func (s *service) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
     return nil, status.Error(codes.Unimplemented, "")
 }
-

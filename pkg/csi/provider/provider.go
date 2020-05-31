@@ -15,8 +15,8 @@ var Manifest = map[string]string{
     "url": "https://github.com/arturoguerra/xcpng-csi",
 }
 
-func New(xclient xapi.XClient, nodeid string) gocsi.StoragePluginProvider {
-    svc := service.New(xclient, nodeid)
+func New(xclient xapi.XClient, nodeid, zone string) gocsi.StoragePluginProvider {
+    svc := service.New(xclient, nodeid, zone)
     return &gocsi.StoragePlugin{
         Controller: svc,
         Identity:   svc,
