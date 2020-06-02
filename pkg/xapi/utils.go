@@ -101,13 +101,12 @@ func (c *xClient) ValidTopology(regionLabel, zoneLabel string) bool {
 
 // GetStorageRepo gets storageRepository from zone
 func (c *xClient) GetStorageRepo(zone *structs.Zone, datastore string) string {
+	if datastore == "" {
+		datastore = zone.Default
+	}
+
 	for _, storage := range zone.Storage {
 		if storage.Name == datastore {
-			return storage.SR
-		}
-	}
-	for _, storage := range zone.Storage {
-		if storage.Name == zone.Default {
 			return storage.SR
 		}
 	}
