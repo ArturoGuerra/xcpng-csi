@@ -3,7 +3,7 @@
 {{- end -}}
 
 {{- define "image" -}}
-{{ printf "%s:%s" .Values.image.repository .Values.image.tag }}
+{{ printf "%s:%s" .Values.image.repository (default (printf "v%s" .Chart.AppVersion) .Values.image.tag) }}
 {{- end -}}
 
 {{- define "controller" -}}

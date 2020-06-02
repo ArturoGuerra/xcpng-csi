@@ -79,7 +79,7 @@ spec:
               mountPath: /var/lib/kubelet/plugins
               mountPropagation: Bidirectional
             - name: config
-              mountPath: /config 
+              mountPath: /config
           securityContext:
             privileged: true
       volumes:

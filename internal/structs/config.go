@@ -30,7 +30,7 @@ type (
 
 	// Config struct: XCPNG-CSI Config
 	Config struct {
-		NodeID  string
+		NodeID  string    `env:"NODE_ID"`
 		Regions []*Region `yaml:"regions"`
 	}
 )

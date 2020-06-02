@@ -4,8 +4,8 @@
 
 image:
     repository: arturoguerra/xcpng-csi
-    tag: v2.0.2
-    
+#    tag: latest
+
 # config:
 #   regions:
 #     - name: us-west

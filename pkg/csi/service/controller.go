@@ -13,6 +13,8 @@ GetCapacity
 
 import (
 	"context"
+	"math/rand"
+	"time"
 
 	"github.com/arturoguerra/xcpng-csi/pkg/errs"
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -69,18 +71,30 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 	zoneRequirements := req.GetAccessibilityRequirements()
 
 	if zoneRequirements != nil {
-		if len(zoneRequirements.Requisite) != 1 {
-			return nil, status.Error(codes.Unknown, "")
+		var topologies *csi.Topology
+
+		rand.Seed(time.Now().UnixNano())
+
+		if len(zoneRequirements.Preferred) > 0 {
+			idx := rand.Intn(len(zoneRequirements.Requisite) - 0)
+			topologies = zoneRequirements.Preferred[idx]
+		} else if len(zoneRequirements.Requisite) > 0 {
+			idx := rand.Intn(len(zoneRequirements.Requisite) - 0)
+			topologies = zoneRequirements.Requisite[idx]
+		} else {
+			log.Error("Missing topology information")
+			return nil, status.Error(codes.Unknown, "Missing topology information")
 		}
 
-		topologies := zoneRequirements.Preferred[0]
 		region, zone, err := s.GetTopologyLabels(topologies.Segments)
 		if err != nil {
+			log.Error(err)
 			return nil, status.Error(codes.Unknown, "")
 		}
 
 		sZone := s.XClient.GetZoneFromLabel(region, zone)
 		if sZone == nil {
+			log.Error("Invalid topology passed")
 			return nil, status.Error(codes.InvalidArgument, "Invalid Topology passed")
 		}
 
@@ -108,6 +122,7 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 		return resp, nil
 	}
 
+	log.Error("Region and Zone are required")
 	return nil, status.Error(codes.Unknown, "Region and Zone are required")
 
 }

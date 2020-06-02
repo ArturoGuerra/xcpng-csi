@@ -23,8 +23,14 @@ func (c *xClient) getNodeInfo(nodeLabel string, zone *structs.Zone) (*NodeInfo, 
 
 func (c *xClient) GetNodeInfo(nodeLabel string) *NodeInfo {
 	for _, region := range c.Regions {
+		log.Infof("Getting region info for: %s", region.Name)
 		for _, zone := range region.Zones {
-			if node, err := c.getNodeInfo(nodeLabel, zone); err == nil && node != nil {
+			log.Infof("Getting Zone info for: %s in %s region", zone.Name, region.Name)
+			node, err := c.getNodeInfo(nodeLabel, zone)
+			if err != nil {
+				log.Error(err)
+			} else if node != nil {
+				log.Infof("Found NodeInfo for %s in zone: %s region: %s", nodeLabel, zone.Name, region.Name)
 				node.Region = region.Name
 				node.Zone = zone.Name
 				return node
