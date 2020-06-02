@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: {{ template "controller" . }}
   namespace: {{ template "namespace" . }}
+  annotations:
+    timestamp: {{ template "timestamp" . }}
 spec:
   selector:
     matchLabels:

@@ -25,3 +25,7 @@
 {{- define "namespace" -}}
 {{ .Release.Namespace }}
 {{- end -}}
+
+{{- define "timestamp" -}}
+{{ date "20060102150405" .Release.Time | quote }}
+{{- end -}}
