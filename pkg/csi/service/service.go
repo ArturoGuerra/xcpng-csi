@@ -1,86 +1,100 @@
 package service
 
 import (
-    "os"
-    "sync"
-    "strings"
-    "github.com/rexray/gocsi"
-    "github.com/arturoguerra/go-logging"
-    "gopkg.in/go-playground/validator.v8"
-    "github.com/container-storage-interface/spec/lib/go/csi"
-    "github.com/arturoguerra/xcpng-csi/pkg/xapi"
-    "github.com/mitchellh/mapstructure"
+	"os"
+	"strings"
+	"sync"
+
+	"github.com/arturoguerra/go-logging"
+	"github.com/arturoguerra/xcpng-csi/internal/structs"
+	"github.com/arturoguerra/xcpng-csi/pkg/xapi"
+	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/mitchellh/mapstructure"
+	"github.com/rexray/gocsi"
+	"gopkg.in/go-playground/validator.v8"
 )
 
 const (
-    Name = "csi.xcpng.arturonet.com"
-    VendorVersion = "1.0.0"
-    UnixSocketPrefix = "unix://"
+	// Name driver base
+	Name = "csi.xcpng.arturonet.com"
+	// VendorVersion is DriverVersion
+	VendorVersion = "1.1.0"
+	// UnixSocketPrefix is the CSI Socket path
+	UnixSocketPrefix = "unix://"
+
+	// RegionLabel is the kubernetes Region node label
+	RegionLabel = "topology.kubernetes.io/region"
+	// ZoneLabel is the kubernetes Zone node label
+	ZoneLabel = "topology.kubernetes.io/zone"
 )
 
+// Manifest contains information about the CSI Driver
 var Manifest = map[string]string{
-    "url": "https://github.com/arturoguerra/kube-xcpng-csi",
+	"url": "https://github.com/arturoguerra/kube-xcpng-csi",
 }
 
 var (
-    log = logging.New()
-    gigabyte = 1024 * 1024 * 1024
-    minSize  = 5 * gigabyte
+	log      = logging.New()
+	gigabyte = 1024 * 1024 * 1024
+	minSize  = 5 * gigabyte
 )
 
 // Work around if node dies and old csi.sock is left behind.
 // NOTE: This can cause issues if two instances of a node are scheduled in the same node but that would be an extreme edge case.
 func init() {
-    sockPath := os.Getenv(gocsi.EnvVarEndpoint)
-    sockPath = strings.TrimPrefix(sockPath, UnixSocketPrefix)
-    if len(sockPath) > 1 {
-        os.Remove(sockPath)
-    }
+	sockPath := os.Getenv(gocsi.EnvVarEndpoint)
+	sockPath = strings.TrimPrefix(sockPath, UnixSocketPrefix)
+	if len(sockPath) > 1 {
+		os.Remove(sockPath)
+	}
 }
 
 type (
-    Service interface {
-        csi.ControllerServer
-        csi.IdentityServer
-        csi.NodeServer
-    }
+	// Service interface that contains all the required CSI Methods
+	Service interface {
+		csi.ControllerServer
+		csi.IdentityServer
+		csi.NodeServer
+	}
 
-    service struct {
-        XClient  xapi.XClient
-        NodeID   string
-        Zone     string
-        /* CreateVolume */
-        CVMux    sync.Mutex
-        /* ControllerPublishVolume */
-        PVMux    sync.Mutex
-    }
+	service struct {
+		XClient xapi.XClient
+		NodeID  string
+		Regions []*structs.Region
+		/* CreateVolume */
+		CVMux sync.Mutex
+		/* ControllerPublishVolume */
+		PVMux sync.Mutex
+	}
 
-    Params struct {
-        SR     string `json:"SR" validate:"required"`
-        FSType string `json:"FSType"`
-    }
+	// Params represent the StorageClass Parameters fields
+	Params struct {
+		Datastore string `json:"Datastore"`
+		FSType    string `json:"FSType"`
+		Region    string `json:"Region"`
+		Zone      string `json:"Zone"`
+	}
 )
 
 func (s *service) ParseParams(items map[string]string) (*Params, error) {
-    var params Params
-    mapstructure.Decode(items, &params)
-    v := validator.New(&validator.Config{TagName: "validate"})
-    if err := v.Struct(&params); err != nil {
-        return nil, err
-    }
+	var params Params
+	mapstructure.Decode(items, &params)
+	v := validator.New(&validator.Config{TagName: "validate"})
+	if err := v.Struct(&params); err != nil {
+		return nil, err
+	}
 
-    if params.FSType == "" {
-        log.Info("Missing fstype assuming EXT4")
-        params.FSType = "ext4"
-    }
+	if params.FSType == "" {
+		params.FSType = "ext4"
+	}
 
-    return &params, nil
+	return &params, nil
 }
 
-func New(xclient xapi.XClient, nodeid, zone string) Service {
-    return &service{
-        XClient: xclient,
-        NodeID:  nodeid,
-        Zone:    zone,
-    }
+// New Creates a new CSI Driver Client
+func New(xclient xapi.XClient, nodeID string) Service {
+	return &service{
+		XClient: xclient,
+		NodeID:  nodeID,
+	}
 }

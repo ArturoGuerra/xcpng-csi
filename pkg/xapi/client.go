@@ -1,32 +1,42 @@
 package xapi
 
 import (
-    "github.com/arturoguerra/go-logging"
+	"github.com/arturoguerra/go-logging"
+	"github.com/arturoguerra/xcpng-csi/internal/structs"
 )
 
 var log = logging.New()
 
 type (
-    XClient interface {
-        Attach(string, string, string, string) (string, error)
-        Detach(string, string) error
-        IsAttached(string, string) (bool, error)
-        CreateVolume(string, string, string, int) (string, error)
-        DeleteVolume(string) error
-        ValidNode(string) (bool, error)
-    }
+	// XClient interface
+	XClient interface {
+		Attach(string, string, string, string, *structs.Zone) (string, error)
+		Detach(string, string) error
+		IsAttached(string, string, *structs.Zone) (bool, error)
+		CreateVolume(string, string, string, int, *structs.Zone) (string, error)
+		DeleteVolume(string) error
+		ValidTopology(string, string) bool
+		GetZoneFromLabel(string, string) *structs.Zone
+		GetRegions() []*structs.Region
+		GetZones() []*structs.Zone
+		GetNodeInfo(string) *NodeInfo
+	}
 
-    xClient struct {
-       Username string
-       Password string
-       Host     string
-    }
+	xClient struct {
+		Regions []*structs.Region
+	}
+
+	// NodeInfo contains information indentifing a node
+	NodeInfo struct {
+		NodeID string
+		Region string
+		Zone   string
+	}
 )
 
-func New(username string, password string, host string) XClient {
-    return &xClient{
-        username,
-        password,
-        host,
-    }
+// New creates new XCP-ng client
+func New(regions []*structs.Region) XClient {
+	return &xClient{
+		Regions: regions,
+	}
 }

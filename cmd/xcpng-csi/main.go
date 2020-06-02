@@ -1,13 +1,14 @@
 package main
 
 import (
-    "context"
-    "github.com/rexray/gocsi"
-    "github.com/arturoguerra/go-logging"
-    "github.com/arturoguerra/xcpng-csi/pkg/xapi"
-    config "github.com/arturoguerra/xcpng-csi/internal/config"
-    service "github.com/arturoguerra/xcpng-csi/pkg/csi/service"
-    provider "github.com/arturoguerra/xcpng-csi/pkg/csi/provider"
+	"context"
+
+	"github.com/arturoguerra/go-logging"
+	config "github.com/arturoguerra/xcpng-csi/internal/config"
+	provider "github.com/arturoguerra/xcpng-csi/pkg/csi/provider"
+	service "github.com/arturoguerra/xcpng-csi/pkg/csi/service"
+	"github.com/arturoguerra/xcpng-csi/pkg/xapi"
+	"github.com/rexray/gocsi"
 )
 
 /*
@@ -17,24 +18,28 @@ NOTE: Its important that the node hostname and the xcp-ng vm name are the same f
 */
 
 func main() {
-    log := logging.New()
-    cfg := config.Load()
+	log := logging.New()
+	cfg, err := config.Load()
 
-    // Ensures we always have a node ID
-    if cfg.NodeID == "" {
-        log.Fatal("Invalid Node ID")
-    }
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-    log.Infof("NodeID: %s", cfg.NodeID)
+	// Ensures we always have a node ID
+	if cfg.NodeID == "" {
+		log.Fatal("Invalid Node ID")
+	}
 
-    xclient := xapi.New(cfg.Username, cfg.Password, cfg.Host)
+	log.Infof("NodeID: %s", cfg.NodeID)
 
-    log.Info("Starting GoCSI for XCP-ng...")
-    gocsi.Run(
-        context.Background(),
-        service.Name,
-        "CSI Driver for XCP-ng",
-        "",
-        provider.New(xclient, cfg.NodeID, cfg.Zone),
-    )
+	xclient := xapi.New(cfg.Regions)
+
+	log.Info("Starting GoCSI for XCP-ng...")
+	gocsi.Run(
+		context.Background(),
+		service.Name,
+		"CSI Driver for XCP-ng",
+		"",
+		provider.New(xclient, cfg.NodeID),
+	)
 }

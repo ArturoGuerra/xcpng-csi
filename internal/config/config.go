@@ -1,16 +1,31 @@
 package config
 
 import (
-    "os"
-    "github.com/arturoguerra/xcpng-csi/internal/structs"
+	"io/ioutil"
+
+	"github.com/arturoguerra/xcpng-csi/internal/structs"
+	"github.com/caarlos0/env/v6"
+	"gopkg.in/yaml.v2"
 )
 
-func Load() *structs.Config {
-    return &structs.Config{
-        Username: os.Getenv("XCPNG_USERNAME"),
-        Password: os.Getenv("XCPNG_PASSWORD"),
-        Host:     os.Getenv("XCPNG_HOST"),
-        Zone:     os.Getenv("XCPNG_ZONE"),
-        NodeID:   os.Getenv("NODE_ID"),
-    }
+const configLocation = "/config/xcpng-csi.conf"
+
+// Load loads the XCP-ng config
+func Load() (*structs.Config, error) {
+	config := structs.Config{}
+
+	if err := env.Parse(&config); err != nil {
+		return nil, err
+	}
+
+	yamlFile, err := ioutil.ReadFile(configLocation)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }

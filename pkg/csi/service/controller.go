@@ -12,160 +12,172 @@ GetCapacity
 */
 
 import (
-    "context"
-    "google.golang.org/grpc/status"
-    "google.golang.org/grpc/codes"
-    "github.com/arturoguerra/xcpng-csi/pkg/errs"
-    "github.com/container-storage-interface/spec/lib/go/csi"
+	"context"
+
+	"github.com/arturoguerra/xcpng-csi/pkg/errs"
+	"github.com/container-storage-interface/spec/lib/go/csi"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-
 func (s *service) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
-    return &csi.ControllerGetCapabilitiesResponse{
-        Capabilities: []*csi.ControllerServiceCapability{
-            {
-                Type: &csi.ControllerServiceCapability_Rpc{
-                    Rpc: &csi.ControllerServiceCapability_RPC{
-                        Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
-                    },
-                },
-            },
-            {
-                Type: &csi.ControllerServiceCapability_Rpc{
-                    Rpc: &csi.ControllerServiceCapability_RPC{
-                        Type: csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
-                    },
-                },
-            },
-        },
-    }, nil
+	return &csi.ControllerGetCapabilitiesResponse{
+		Capabilities: []*csi.ControllerServiceCapability{
+			{
+				Type: &csi.ControllerServiceCapability_Rpc{
+					Rpc: &csi.ControllerServiceCapability_RPC{
+						Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
+					},
+				},
+			},
+			{
+				Type: &csi.ControllerServiceCapability_Rpc{
+					Rpc: &csi.ControllerServiceCapability_RPC{
+						Type: csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
+					},
+				},
+			},
+		},
+	}, nil
 }
 
 func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest) (*csi.CreateVolumeResponse, error) {
-    /* Locks to ensure we don't get double volume creating something that has happened */
-    s.CVMux.Lock()
-    defer s.CVMux.Unlock()
-    name := req.GetName()
-    params, err := s.ParseParams(req.GetParameters())
-    if err != nil {
-        log.Error(err)
-        return nil, status.Error(codes.InvalidArgument, "")
-    }
+	/* Locks to ensure we don't get double volume creating something that has happened */
+	s.CVMux.Lock()
+	defer s.CVMux.Unlock()
+	name := req.GetName()
+	params, err := s.ParseParams(req.GetParameters())
+	if err != nil {
+		log.Error(err)
+		return nil, status.Error(codes.InvalidArgument, "")
+	}
 
-    // Calculates disk size in bytes and sets a min size of 5Gi
-    volSizeBytes := int64(minSize)
-    if req.GetCapacityRange() != nil && req.GetCapacityRange().RequiredBytes != 0 {
-        if int64(req.GetCapacityRange().GetRequiredBytes()) > volSizeBytes {
-            log.Info("Setting custom disk size")
-            volSizeBytes = int64(req.GetCapacityRange().GetRequiredBytes())
-        }
-    }
+	// Calculates disk size in bytes and sets a min size of 5Gi
+	volSizeBytes := int64(minSize)
+	if req.GetCapacityRange() != nil && req.GetCapacityRange().RequiredBytes != 0 {
+		if int64(req.GetCapacityRange().GetRequiredBytes()) > volSizeBytes {
+			log.Info("Setting custom disk size")
+			volSizeBytes = int64(req.GetCapacityRange().GetRequiredBytes())
+		}
+	}
 
-    VolId, err := s.XClient.CreateVolume(name, params.SR, params.FSType, int(volSizeBytes))
-    if err != nil {
-        log.Error(err)
-        return nil, status.Error(codes.Internal, "")
-    }
+	// zoneRequirements.Requisite []*Topology
+	// zoneRequirements.Preferred []*Topology
+	// Topology { Segments: map[string]string }
 
-    resp := &csi.CreateVolumeResponse{
-        Volume: &csi.Volume{
-            VolumeId: VolId,
-            CapacityBytes: volSizeBytes,
-            VolumeContext: req.GetParameters(),
-        },
-    }
+	zoneRequirements := req.GetAccessibilityRequirements()
 
-    // zoneRequirements.Requisite []*Topology
-    // zoneRequirements.Preferred []*Topology
-    // Topology { Segments: map[string]string }
+	if zoneRequirements != nil {
+		if len(zoneRequirements.Requisite) != 1 {
+			return nil, status.Error(codes.Unknown, "")
+		}
 
-    zoneRequirements := req.GetAccessibilityRequirements()
+		topologies := zoneRequirements.Preferred[0]
+		region, zone, err := s.GetTopologyLabels(topologies.Segments)
+		if err != nil {
+			return nil, status.Error(codes.Unknown, "")
+		}
 
-    topologies := make([]*csi.Topology, 0)
+		sZone := s.XClient.GetZoneFromLabel(region, zone)
+		if sZone == nil {
+			return nil, status.Error(codes.InvalidArgument, "Invalid Topology passed")
+		}
 
-    if (zoneRequirements != nil) {
-        topologies = zoneRequirements.Requisite
-    } else if (s.Zone != "") {
-       volumeTopology := make(map[string]string)
-       volumeTopology["topology.kubernetes.io/zone"] = s.Zone
-       volumeTopology["failure-domain.beta.kubernetes.io/zone"] = s.Zone
+		VolumeID, err := s.XClient.CreateVolume(name, params.FSType, params.Datastore, int(volSizeBytes), sZone)
+		if err != nil {
+			log.Error(err)
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 
-       t := &csi.Topology{
-           Segments: volumeTopology,
-       }
+		parameters := map[string]string{}
+		parameters["Region"] = region
+		parameters["Zone"] = zone
+		parameters["FSType"] = params.FSType
+		parameters["Datastore"] = params.Datastore
 
-       topologies = append(topologies, t)
-    }
+		resp := &csi.CreateVolumeResponse{
+			Volume: &csi.Volume{
+				VolumeId:           VolumeID,
+				CapacityBytes:      volSizeBytes,
+				VolumeContext:      parameters,
+				AccessibleTopology: []*csi.Topology{topologies},
+			},
+		}
 
-    if len(topologies) != 0 {
-        resp.Volume.AccessibleTopology = append(resp.Volume.AccessibleTopology, topologies...)
-    }
+		return resp, nil
+	}
 
-    return resp, nil
+	return nil, status.Error(codes.Unknown, "Region and Zone are required")
+
 }
 
+// TODO
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
+	//if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
+	//	log.Error(err)
+	//	return nil, status.Error(codes.Internal, "")
+	//}
 
-    if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
-        log.Error(err)
-        return nil, status.Error(codes.Internal, "")
-    }
-
-    return &csi.DeleteVolumeResponse{}, nil
+	return &csi.DeleteVolumeResponse{}, nil
 }
 
 func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
-    s.PVMux.Lock()
-    defer s.PVMux.Unlock()
-    log.Info("Running ControllerPublishVolume")
-    params, err := s.ParseParams(req.GetVolumeContext())
-    if err != nil {
-        log.Error(err)
-        return nil, status.Error(codes.InvalidArgument, "")
-    }
+	s.PVMux.Lock()
+	defer s.PVMux.Unlock()
+	log.Info("Running ControllerPublishVolume")
+	params, err := s.ParseParams(req.GetVolumeContext())
+	if err != nil {
+		log.Error(err)
+		return nil, status.Error(codes.InvalidArgument, "")
+	}
 
-    device, err := s.XClient.Attach(req.GetVolumeId(), req.GetNodeId(), "rw", params.FSType)
-    if err != nil {
-        log.Error(err)
-        switch err.Error() {
-        case errs.InvalidVolume:
-            return nil, status.Error(codes.NotFound, "")
-        case errs.InvalidNode:
-            return nil, status.Error(codes.NotFound, "")
-        case errs.AlreadyExists:
-            return nil, status.Error(codes.AlreadyExists, "")
-        default:
-            return nil, status.Error(codes.Internal, "")
-        }
-    }
+	zone := s.XClient.GetZoneFromLabel(params.Region, params.Zone)
+	if zone == nil {
+		return nil, status.Error(codes.Internal, "Invalid Region/Zone")
+	}
 
-    log.Infof("VM Device: %s", device)
+	device, err := s.XClient.Attach(req.GetVolumeId(), req.GetNodeId(), "rw", params.FSType, zone)
+	if err != nil {
+		log.Error(err)
+		switch err.Error() {
+		case errs.InvalidVolume:
+			return nil, status.Error(codes.NotFound, "")
+		case errs.InvalidNode:
+			return nil, status.Error(codes.NotFound, "")
+		case errs.AlreadyExists:
+			return nil, status.Error(codes.AlreadyExists, "")
+		default:
+			return nil, status.Error(codes.Internal, "")
+		}
+	}
 
-    return &csi.ControllerPublishVolumeResponse{
-        PublishContext: map[string]string{
-            "device": device,
-        },
-    }, nil
+	log.Infof("VM Device: %s", device)
+
+	return &csi.ControllerPublishVolumeResponse{
+		PublishContext: map[string]string{
+			"device": device,
+		},
+	}, nil
 }
 
 func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
-    log.Info("Running ControllerUnpublishVolume")
-    if err := s.XClient.Detach(req.GetVolumeId(), req.GetNodeId()); err != nil {
-        log.Error(err)
-        /*
-           Temp fix for an issue where kubernetes calls this twice causing the pv to stay in Terminating
-           TODO: Implement error filtering for when a volume is not found
-        */
-        return &csi.ControllerUnpublishVolumeResponse{}, nil
-        /*return nil, status.Error(codes.NotFound, "")*/
-    }
+	log.Info("Running ControllerUnpublishVolume")
+	if err := s.XClient.Detach(req.GetVolumeId(), req.GetNodeId()); err != nil {
+		log.Error(err)
+		/*
+		   Temp fix for an issue where kubernetes calls this twice causing the pv to stay in Terminating
+		   TODO: Implement error filtering for when a volume is not found
+		*/
+		return &csi.ControllerUnpublishVolumeResponse{}, nil
+		/*return nil, status.Error(codes.NotFound, "")*/
+	}
 
-    return &csi.ControllerUnpublishVolumeResponse{}, nil
+	return &csi.ControllerUnpublishVolumeResponse{}, nil
 }
 
 func (s *service) ValidateVolumeCapabilities(ctx context.Context, req *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
-    log.Info("Validating VolumeCapabilities")
-    return &csi.ValidateVolumeCapabilitiesResponse{
+	log.Info("Validating VolumeCapabilities")
+	return &csi.ValidateVolumeCapabilitiesResponse{
 		Confirmed: &csi.ValidateVolumeCapabilitiesResponse_Confirmed{
 			VolumeContext:      req.GetVolumeContext(),
 			VolumeCapabilities: req.GetVolumeCapabilities(),
@@ -174,30 +186,29 @@ func (s *service) ValidateVolumeCapabilities(ctx context.Context, req *csi.Valid
 	}, nil
 }
 
-
 // Unimplemented
 
 func (s *service) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
-    log.Info("Running ListVolumes")
-    return nil, status.Error(codes.Unimplemented, "")
+	log.Info("Running ListVolumes")
+	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (s *service) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (s *service) CreateSnapshot(ctx context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (s *service) DeleteSnapshot(ctx context.Context, req *csi.DeleteSnapshotRequest) (*csi.DeleteSnapshotResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (s *service) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsRequest) (*csi.ListSnapshotsResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "")
 }
 
 func (s *service) GetCapacity(ctx context.Context, req *csi.GetCapacityRequest) (*csi.GetCapacityResponse, error) {
-    return nil, status.Error(codes.Unimplemented, "")
+	return nil, status.Error(codes.Unimplemented, "")
 }
