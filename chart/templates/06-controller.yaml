@@ -66,13 +66,7 @@ spec:
             initialDelaySeconds: 10
             timeoutSeconds: 3
             periodSeconds: 2
-
           env:
-            - name: XCPNG_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "secret" . }}
-                  key: xcpng-password
             - name: NODE_ID
               valueFrom:
                 fieldRef:
@@ -87,6 +81,14 @@ spec:
           volumeMounts:
             - name: socket
               mountPath: /var/lib/csi/sockets/pluginproxy
+            - name: config
+              mountPath: /config
       volumes:
         - name: socket
           emptyDir: {}
+        - name: config
+          configMap:
+            name: {{ template "name" .}}
+            items:
+              - key: xcpng-csi.conf
+                path: xcpng-csi.conf

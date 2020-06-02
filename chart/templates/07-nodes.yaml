@@ -56,11 +56,6 @@ spec:
             timeoutSeconds: 3
             periodSeconds: 2
           env:
-            - name: XCPNG_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "secret" . }}
-                  key: xcpng-password
             - name: NODE_ID
               valueFrom:
                 fieldRef:
@@ -72,9 +67,6 @@ spec:
             # Fixes bug where goCSI was returning InvalidArgument on NodePublishVolume
             - name: X_CSI_SPEC_REQ_VALIDATION
               value: "false"
-          envFrom:
-            - configMapRef:
-                name: {{ template "name" . }}
           volumeMounts:
             - name: socket-dir
               mountPath: /csi
@@ -86,6 +78,8 @@ spec:
             - name: plugins-dir
               mountPath: /var/lib/kubelet/plugins
               mountPropagation: Bidirectional
+            - name: config
+              mountPath: /config 
           securityContext:
             privileged: true
       volumes:
@@ -109,3 +103,9 @@ spec:
           hostPath:
             path: /var/lib/kubelet/plugins_registry
             type: Directory
+        - name: config
+          configMap:
+            name: {{ template "name" . }}
+            items:
+              - key: xcpng-csi.conf
+                path: xcpng-csi.conf

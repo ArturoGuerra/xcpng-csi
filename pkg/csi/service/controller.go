@@ -45,6 +45,7 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 	/* Locks to ensure we don't get double volume creating something that has happened */
 	s.CVMux.Lock()
 	defer s.CVMux.Unlock()
+	log.Info("Running CreateVolume")
 	name := req.GetName()
 	params, err := s.ParseParams(req.GetParameters())
 	if err != nil {
@@ -113,10 +114,11 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 
 // TODO
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
-	//if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
-	//	log.Error(err)
-	//	return nil, status.Error(codes.Internal, "")
-	//}
+	log.Info("Running DeleteVolume")
+	if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
+		log.Error(err)
+		return nil, status.Error(codes.Internal, "")
+	}
 
 	return &csi.DeleteVolumeResponse{}, nil
 }

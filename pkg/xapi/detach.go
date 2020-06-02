@@ -50,12 +50,13 @@ func (c *xClient) Detach(volID, nodeID string) error {
 	detached := false
 
 	for _, zone := range c.GetZones() {
-		if detached, err := c.detach(volID, nodeID, zone); err != nil || detached {
+		if vDetached, err := c.detach(volID, nodeID, zone); err != nil || vDetached {
 			if err != nil {
 				log.Error(err)
 				return err
 			}
 
+			detached = true
 			break
 		}
 	}

@@ -1,8 +1,3 @@
 Config located at {{ template "name" . }} edit values according to your cluster settings:
 {{ toYaml .Values.config | indent 4 }}
 
-
-{{- if not .Values.secretName }}
-Create Secret called {{ template "secret" . }} with the following values:
-xcpng-password: "XCP-ng password"
-{{- end }}

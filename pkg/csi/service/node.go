@@ -158,6 +158,8 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 		AccessibleTopology[ZoneLabel] = nodeInfo.Zone
 
 		topology.Segments = AccessibleTopology
+
+		log.Infof("NodeID: %s Region: %s Zone: %s", nodeInfo.NodeID, nodeInfo.Region, nodeInfo.Zone)
 	}
 
 	return &csi.NodeGetInfoResponse{

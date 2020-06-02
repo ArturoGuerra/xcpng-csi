@@ -107,7 +107,7 @@ func (c *xClient) GetStorageRepo(zone *structs.Zone, datastore string) string {
 		}
 	}
 	for _, storage := range zone.Storage {
-		if storage.Name == datastore {
+		if storage.Name == zone.Default {
 			return storage.SR
 		}
 	}

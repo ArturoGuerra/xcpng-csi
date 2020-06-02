@@ -5,5 +5,6 @@ metadata:
     name: {{ template "name" . }}
     namespace: {{ template "namespace" . }}
 data:
-{{ toYaml .Values.config | indent 4 }}
+    xcpng-csi.conf: |-
+      {{- toYaml .Values.config | nindent 8 }}
 {{- end }}
