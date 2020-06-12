@@ -18,10 +18,10 @@ apiVesrion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
    name: fast
-provisioner: csi.xcpng.arturonet.com
+provisioner: csi.xcpng.ar2ro.io
 parameters:
-   SR: "Storage Repository name"
-   FSType: "Filesystem Type ie. ext4"
+   Datastore: "Optional: Storage Repository Name"
+   FSType: "Optional: Filesystem Type ie. ext4 Defaults to ext4"
 ---
 # PersistentVolumeClaim that users the fast StorageClass
 apiVersion: v1
