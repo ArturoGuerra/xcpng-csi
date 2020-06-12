@@ -1,52 +1,32 @@
 package xapi
 
 import (
-	"fmt"
+	"errors"
 
+	"github.com/arturoguerra/go-xolib/pkg/xoclient"
 	"github.com/arturoguerra/xcpng-csi/internal/structs"
-	xenapi "github.com/terra-farm/go-xen-api-client"
 )
 
 // CreateVolume creates in specific region/zone and storageRepo
-func (c *xClient) CreateVolume(name, fsType, datastore string, size int, zone *structs.Zone) (string, error) {
+func (c *xClient) CreateVolume(name, fsType, datastore string, size int64, zone *structs.Zone) (*xoclient.VDIRef, error) {
+	// gets SR uuid from Name (using zone config)
+	srRef := c.GetStorageRepo(zone, datastore)
+	if srRef == nil {
+		return nil, errors.New("Missing SR")
+	}
 
-	api, session, err := c.Connect(zone)
+	// gets SR using SRUUID
+	sr, err := c.GetSRByUUID(*srRef)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	defer c.Close(api, session)
-
-	sr := c.GetStorageRepo(zone, datastore)
-
-	srs, err := api.SR.GetByNameLabel(session, sr)
+	// creates volume in SR
+	vdiRef, err := c.CreateVDI(name, size, sr.UUID)
 	if err != nil {
-		return "", fmt.Errorf("Could not list SRs for name label: %s, error: %s", sr, err.Error())
+		return nil, err
 	}
 
-	if len(srs) > 1 {
-		return "", fmt.Errorf("Too many SRs where found for thr name label: %s", sr)
-	}
-
-	if len(srs) < 1 {
-		return "", fmt.Errorf("No SR was found for name label: %s", sr)
-	}
-
-	ref, err := api.VDI.Create(session, xenapi.VDIRecord{
-		NameDescription: "XCP-ng CSI Driver for Kubernetes",
-		NameLabel:       name,
-		SR:              srs[0],
-		Type:            xenapi.VdiTypeUser,
-		VirtualSize:     size,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	record, err := api.VDI.GetRecord(session, ref)
-	if err != nil {
-		return "", err
-	}
-
-	return record.UUID, nil
+	// returns VDIRef
+	return vdiRef, nil
 }

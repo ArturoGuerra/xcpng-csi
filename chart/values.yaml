@@ -7,17 +7,12 @@ image:
 #    tag: latest
 
 # config:
-#   regions:
-#     - name: us-west
-#       zones:
-#         - name: us-west-1
-#           credentials:
-#              host: "hostname/IP"
-#              user: "username"
-#              password: "password"
-#           default: "Default Storage Repository"
-#           storage:
-#              - name: standard
-#                sr: "Repository name"
+#     zones:
+#     - name: us-west-1
+#       hostid: "Host UUID"
+#       default: "Default Storage Repository"
+#       storage:
+#       - name: standard
+#         sr: "sr UUID"
 
 # serviceAccount: "Account Name"

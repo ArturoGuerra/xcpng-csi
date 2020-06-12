@@ -1,43 +1,21 @@
 package xapi
 
-import (
-	"github.com/arturoguerra/xcpng-csi/internal/structs"
-	xenapi "github.com/terra-farm/go-xen-api-client"
-)
+import "github.com/arturoguerra/go-xolib/pkg/xoclient"
 
-func (c *xClient) IsAttached(volID, nodeID string, zone *structs.Zone) (bool, error) {
-	api, session, err := c.Connect(zone)
-	if err != nil {
-		return false, err
-	}
-	defer c.Close(api, session)
-
-	vm, err := c.GetVM(api, session, nodeID)
+func (c *xClient) IsAttached(volID, nodeID string) (bool, error) {
+	vdiRef := xoclient.VDIRef(volID)
+	vm, err := c.GetVMByName(nodeID)
 	if err != nil {
 		return false, err
 	}
 
-	log.Info("VDI.GetAllRecords")
-	vdis, err := api.VDI.GetAllRecords(session)
-	if err != nil {
-		return false, err
-	}
-
-	var vdiUUID xenapi.VDIRef
-	for ref, vdi := range vdis {
-		if vdi.NameLabel == volID && !vdi.IsASnapshot {
-			vdiUUID = ref
-		}
-	}
-
-	log.Info("VBD.GetAllRecords")
-	vbds, err := api.VBD.GetAllRecords(session)
+	vbds, err := c.GetVBDsFromVM(vm.UUID)
 	if err != nil {
 		return false, err
 	}
 
 	for _, vbd := range vbds {
-		if vbd.VM == vm && vbd.CurrentlyAttached && vbd.VDI == vdiUUID {
+		if vbd.VDI == vdiRef {
 			return true, nil
 		}
 	}

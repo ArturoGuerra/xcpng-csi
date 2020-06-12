@@ -16,16 +16,20 @@ import (
 
 const (
 	// Name driver base
-	Name = "csi.xcpng.arturonet.com"
+	Name = "csi.xcpng.ar2ro.io"
 	// VendorVersion is DriverVersion
 	VendorVersion = "1.1.0"
 	// UnixSocketPrefix is the CSI Socket path
 	UnixSocketPrefix = "unix://"
 
-	// RegionLabel is the kubernetes Region node label
-	RegionLabel = "topology.kubernetes.io/region"
 	// ZoneLabel is the kubernetes Zone node label
 	ZoneLabel = "topology.kubernetes.io/zone"
+	// ZoneUUID is the pool UUID
+	ZoneUUID = Name + "/pool-uuid"
+	// NodeUUID is the node UUID
+	NodeUUID = Name + "/node-uuid"
+	// NodeName is the vm name
+	NodeName = Name + "/node"
 )
 
 // Manifest contains information about the CSI Driver
@@ -36,7 +40,7 @@ var Manifest = map[string]string{
 var (
 	log      = logging.New()
 	gigabyte = 1024 * 1024 * 1024
-	minSize  = 5 * gigabyte
+	minSize  = 1 * gigabyte
 )
 
 // Work around if node dies and old csi.sock is left behind.
@@ -58,9 +62,10 @@ type (
 	}
 
 	service struct {
-		XClient xapi.XClient
-		NodeID  string
-		Regions []*structs.Region
+		XClient   xapi.XClient
+		NodeID    string
+		ClusterID string
+		Zones     []*structs.Zone
 		/* CreateVolume */
 		CVMux sync.Mutex
 		/* ControllerPublishVolume */
@@ -69,10 +74,8 @@ type (
 
 	// Params represent the StorageClass Parameters fields
 	Params struct {
-		Datastore string `json:"Datastore"`
 		FSType    string `json:"FSType"`
-		Region    string `json:"Region"`
-		Zone      string `json:"Zone"`
+		Datastore string `json:"Datastore"`
 	}
 )
 

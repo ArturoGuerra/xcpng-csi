@@ -25,14 +25,14 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	// Ensures we always have a node ID
-	if cfg.NodeID == "" {
-		log.Fatal("Invalid Node ID")
+	// Ensures we always have a clusterID and node ID
+	if cfg.NodeID == "" || cfg.ClusterID == "" {
+		log.Fatal("Invalid ClusterID and/or Node ID")
 	}
 
 	log.Infof("NodeID: %s", cfg.NodeID)
 
-	xclient := xapi.New(cfg.Regions)
+	xclient := xapi.New(cfg.ClusterID, cfg.NodeID, cfg.Zones)
 
 	log.Info("Starting GoCSI for XCP-ng...")
 	gocsi.Run(

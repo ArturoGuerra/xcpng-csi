@@ -86,33 +86,30 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 			return nil, status.Error(codes.Unknown, "Missing topology information")
 		}
 
-		region, zone, err := s.GetTopologyLabels(topologies.Segments)
+		zoneName, err := s.GetTopologyFromLabels(topologies.Segments)
 		if err != nil {
 			log.Error(err)
 			return nil, status.Error(codes.Unknown, "")
 		}
 
-		sZone := s.XClient.GetZoneFromLabel(region, zone)
-		if sZone == nil {
+		zone := s.XClient.GetZoneByLabel(zoneName)
+		if zone == nil {
 			log.Error("Invalid topology passed")
 			return nil, status.Error(codes.InvalidArgument, "Invalid Topology passed")
 		}
 
-		VolumeID, err := s.XClient.CreateVolume(name, params.FSType, params.Datastore, int(volSizeBytes), sZone)
+		VolumeID, err := s.XClient.CreateVolume(name, params.FSType, params.Datastore, volSizeBytes, zone)
 		if err != nil {
 			log.Error(err)
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 
 		parameters := map[string]string{}
-		parameters["Region"] = region
-		parameters["Zone"] = zone
 		parameters["FSType"] = params.FSType
-		parameters["Datastore"] = params.Datastore
 
 		resp := &csi.CreateVolumeResponse{
 			Volume: &csi.Volume{
-				VolumeId:           VolumeID,
+				VolumeId:           string(*VolumeID),
 				CapacityBytes:      volSizeBytes,
 				VolumeContext:      parameters,
 				AccessibleTopology: []*csi.Topology{topologies},
@@ -122,8 +119,7 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 		return resp, nil
 	}
 
-	log.Error("Region and Zone are required")
-	return nil, status.Error(codes.Unknown, "Region and Zone are required")
+	return nil, status.Error(codes.Unknown, "Zone are required")
 
 }
 
@@ -148,12 +144,7 @@ func (s *service) ControllerPublishVolume(ctx context.Context, req *csi.Controll
 		return nil, status.Error(codes.InvalidArgument, "")
 	}
 
-	zone := s.XClient.GetZoneFromLabel(params.Region, params.Zone)
-	if zone == nil {
-		return nil, status.Error(codes.Internal, "Invalid Region/Zone")
-	}
-
-	device, err := s.XClient.Attach(req.GetVolumeId(), req.GetNodeId(), "rw", params.FSType, zone)
+	device, err := s.XClient.Attach(req.GetVolumeId(), req.GetNodeId(), params.FSType)
 	if err != nil {
 		log.Error(err)
 		switch err.Error() {

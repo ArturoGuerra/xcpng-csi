@@ -154,12 +154,14 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 
 	if nodeInfo := s.XClient.GetNodeInfo(s.NodeID); nodeInfo != nil {
 		AccessibleTopology := make(map[string]string)
-		AccessibleTopology[RegionLabel] = nodeInfo.Region
 		AccessibleTopology[ZoneLabel] = nodeInfo.Zone
+		AccessibleTopology[ZoneUUID] = nodeInfo.ZoneUUID
+		AccessibleTopology[NodeUUID] = nodeInfo.NodeUUID
+		AccessibleTopology[NodeName] = nodeInfo.NodeID
 
 		topology.Segments = AccessibleTopology
 
-		log.Infof("NodeID: %s Region: %s Zone: %s", nodeInfo.NodeID, nodeInfo.Region, nodeInfo.Zone)
+		log.Infof("NodeID: %s NodeUUID: %s ZoneID:  ZoneUUID: %s", nodeInfo.NodeID, nodeInfo.NodeUUID, nodeInfo.Zone, nodeInfo.ZoneUUID)
 	}
 
 	return &csi.NodeGetInfoResponse{

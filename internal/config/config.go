@@ -13,7 +13,8 @@ const configLocation = "/config/xcpng-csi.conf"
 // Load loads the XCP-ng config
 func Load() (*structs.Config, error) {
 	config := structs.Config{
-		NodeID: os.Getenv("NODE_ID"),
+		NodeID:    os.Getenv("NODE_ID"),
+		ClusterID: os.Getenv("CLUSTER_ID"),
 	}
 
 	yamlFile, err := ioutil.ReadFile(configLocation)
