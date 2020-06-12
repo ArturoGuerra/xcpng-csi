@@ -7,7 +7,7 @@ import (
 
 // GetZoneByLabel get zone based on region and zone labels
 func (c *xClient) GetZoneByLabel(zoneLabel string) *structs.Zone {
-	for _, zone := range c.Zones {
+	for _, zone := range c.GetZones() {
 		if zone.Name == zoneLabel {
 			return zone
 		}
@@ -17,7 +17,7 @@ func (c *xClient) GetZoneByLabel(zoneLabel string) *structs.Zone {
 }
 
 func (c *xClient) GetZoneByUUID(uuid string) *structs.Zone {
-	for _, zone := range c.Zones {
+	for _, zone := range c.GetZones() {
 		if zone.PoolID == uuid {
 			return zone
 		}

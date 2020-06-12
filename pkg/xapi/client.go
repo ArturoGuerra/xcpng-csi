@@ -27,7 +27,7 @@ type (
 	}
 
 	xClient struct {
-		xoclient.Client
+		xoclient.XOClient
 		ClusterID string
 		NodeID    string
 		PoolID    string
@@ -44,10 +44,24 @@ type (
 )
 
 // New creates new XCP-ng client
-func New(clusterID, nodeID string, zones []*structs.Zone) XClient {
-	return &xClient{
-		ClusterID: clusterID,
-		NodeID:    nodeID,
-		Zones:     zones,
+func New(config *structs.Config) (XClient, error) {
+	lib, err := xolib.NewXolib(&xolib.Config{
+		Host:     config.Credentials.Host,
+		Username: config.Credentials.Username,
+		Password: config.Credentials.Password,
+		SSL:      config.Credentials.SSL,
+	})
+
+	if err != nil {
+		return nil, err
 	}
+
+	xoClient := xoclient.NewClient(lib)
+
+	return &xClient{
+		XOClient:  xoClient,
+		ClusterID: config.ClusterID,
+		NodeID:    config.NodeID,
+		Zones:     config.Zones,
+	}, nil
 }

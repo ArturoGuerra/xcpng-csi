@@ -35,7 +35,7 @@ func (s *service) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapab
 	}, nil
 }
 
-// Mounts to a common directory for pods to bind mount to
+// NodeStateVolume Mounts to a common directory for pods to bind mount to
 func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
 	log.Info("Running NodeStageVolume")
 	stagingTargetPath := req.GetStagingTargetPath()
@@ -73,6 +73,7 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
 	return &csi.NodeStageVolumeResponse{}, nil
 }
 
+// NodeUnstageVolume unmounts the common directory
 func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
 	log.Info("Running NodeUnstageVolume")
 	stagingTargetPath := req.GetStagingTargetPath()
@@ -89,7 +90,7 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
-// Bind Mounts from staging to pod mount path
+// NodePublishVolume Bind Mounts from staging to pod mount path
 func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	log.Info("Running NodePublishVolume")
 	stagingTargetPath := req.GetStagingTargetPath()
@@ -129,6 +130,7 @@ func (s *service) NodePublishVolume(ctx context.Context, req *csi.NodePublishVol
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
+// NodeUnpublishVolume unmounts the bind mount between the pod and common directory
 func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
 	log.Info("Running NodeUnpublishVolume")
 	targetPath := req.GetTargetPath()
@@ -145,6 +147,7 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
 }
 
 func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
+	log.Infof("Getting NodeInfo for %s", s.NodeID)
 	topology := new(csi.Topology)
 
 	/*
@@ -161,7 +164,7 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 
 		topology.Segments = AccessibleTopology
 
-		log.Infof("NodeID: %s NodeUUID: %s ZoneID:  ZoneUUID: %s", nodeInfo.NodeID, nodeInfo.NodeUUID, nodeInfo.Zone, nodeInfo.ZoneUUID)
+		log.Infof("NodeID: %s NodeUUID: %s ZoneID: %s ZoneUUID: %s", nodeInfo.NodeID, nodeInfo.NodeUUID, nodeInfo.Zone, nodeInfo.ZoneUUID)
 	}
 
 	return &csi.NodeGetInfoResponse{

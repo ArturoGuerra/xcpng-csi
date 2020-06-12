@@ -7,7 +7,7 @@ func (c *xClient) GetNodeInfo(nodeLabel string) *NodeInfo {
 		return nil
 	}
 
-	if zone := c.GetZoneByUUID(vm.PoolID); zone == nil {
+	if zone := c.GetZoneByUUID(vm.PoolID); zone != nil {
 		return &NodeInfo{
 			NodeID:   nodeLabel,
 			NodeUUID: string(vm.UUID),

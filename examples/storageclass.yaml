@@ -1,8 +1,5 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: fast
-provisioner: csi.xcpng.arturonet.com
-parameters:
-  SR: "SSD Local Storage"
-  FSType: "ext4"
+  name: test
+provisioner: csi.xcpng.ar2ro.io

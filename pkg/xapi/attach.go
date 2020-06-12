@@ -24,32 +24,30 @@ func (c *xClient) Attach(volID, nodeID, fstype string) (string, error) {
 		return "", err
 	}
 
-	var vbd *xoclient.VBD
-
-	for _, vbd := range vbds {
-		if vbd.VM != vm.UUID {
-			if err := c.DeleteVBD(vbd.UUID); err != nil {
-				log.Error(err)
-			}
-		} else {
-			vbd = vbd
+	for _, VBD := range vbds {
+		if err := c.DeleteVBD(VBD.UUID); err != nil {
+			log.Error(err)
 		}
 	}
 
-	if vbd == nil {
-		if err = c.AttachVBD(vdi.UUID, vm.UUID); err != nil {
-			return "", err
-		}
+	if err = c.AttachVBD(vdi.UUID, vm.UUID); err != nil {
+		return "", err
+	}
 
-		vbds, err := c.GetVBDsFromVDI(vdi.UUID)
-		if err != nil {
-			return "", err
-		}
+	vbds, err = c.GetVBDsFromVDI(vdi.UUID)
+	if err != nil {
+		return "", err
+	}
 
-		for _, vbd := range vbds {
-			if vbd.VM == vm.UUID {
-				vbd = vbd
-			}
+	if len(vbds) != 1 {
+		return "", fmt.Errorf("Found %d VBDs", len(vbds))
+	}
+
+	var vbd *xoclient.VBD
+
+	for _, VBD := range vbds {
+		if VBD.VM == vm.UUID {
+			vbd = VBD
 		}
 	}
 

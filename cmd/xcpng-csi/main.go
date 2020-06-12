@@ -32,7 +32,10 @@ func main() {
 
 	log.Infof("NodeID: %s", cfg.NodeID)
 
-	xclient := xapi.New(cfg.ClusterID, cfg.NodeID, cfg.Zones)
+	xclient, err := xapi.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	log.Info("Starting GoCSI for XCP-ng...")
 	gocsi.Run(
