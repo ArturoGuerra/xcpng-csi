@@ -9,10 +9,8 @@ github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuy
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/arturoguerra/go-logging v0.0.0-20200217210650-0d44702b7d73 h1:pNk2kjaBtRi3N3f6hChHR6fjUivXPsg1UXMzrpxpbsI=
 github.com/arturoguerra/go-logging v0.0.0-20200217210650-0d44702b7d73/go.mod h1:4Slb68ZwB5a/H8UlGskqJcFA3inUpAWyhwyZjB3S0Ok=
-github.com/arturoguerra/go-xolib v0.0.0-20200612220738-147101ea102a h1:pUMtKVeAmWFWdNMYIidLn7F7l7dQbo4YM9HmUohpLTM=
-github.com/arturoguerra/go-xolib v0.0.0-20200612220738-147101ea102a/go.mod h1:qrNqO9j/K/AWB4p39jEAxQN2rmYgbF5uzDvr8qWILD4=
-github.com/arturoguerra/go-xolib v0.0.0-20200612231259-9c67fc28458f h1:g98v5G5Hmc4U/MJukSnbgXLqoJFJb7hjNx8uVLhGaJg=
-github.com/arturoguerra/go-xolib v0.0.0-20200612231259-9c67fc28458f/go.mod h1:qrNqO9j/K/AWB4p39jEAxQN2rmYgbF5uzDvr8qWILD4=
+github.com/arturoguerra/go-xolib v0.0.0-20200612232509-69f97c32b0ec h1:02QpHgLytceeajCSk2BRDOkSf3rvsPlQrReNVp6Zt8U=
+github.com/arturoguerra/go-xolib v0.0.0-20200612232509-69f97c32b0ec/go.mod h1:qrNqO9j/K/AWB4p39jEAxQN2rmYgbF5uzDvr8qWILD4=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
