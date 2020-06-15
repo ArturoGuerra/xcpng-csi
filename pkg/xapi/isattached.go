@@ -1,6 +1,10 @@
 package xapi
 
-import "github.com/arturoguerra/go-xolib/pkg/xoclient"
+import (
+	"errors"
+
+	"github.com/arturoguerra/go-xolib/pkg/xoclient"
+)
 
 func (c *xClient) IsAttached(volID, nodeID string) (bool, error) {
 	vdiRef := xoclient.VDIRef(volID)

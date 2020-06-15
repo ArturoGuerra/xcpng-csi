@@ -1,6 +1,7 @@
 package xapi
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/arturoguerra/go-xolib/pkg/xoclient"
