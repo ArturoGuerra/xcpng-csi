@@ -9,10 +9,16 @@ import (
 // Attach attaches volume to node
 func (c *xClient) Attach(volID, nodeID, fstype string) (string, error) {
 	vdiRef := xoclient.VDIRef(volID)
-	vm, err := c.GetVMByName(nodeID)
+	vms, err := c.GetVMByName(nodeID)
 	if err != nil {
 		return "", err
 	}
+
+	if len(vms) > 1 || len(vms) == 0 {
+		return "", errors.New("Error fetching VMs")
+	}
+
+	vm := vms[0]
 
 	vdi, err := c.GetVDIByUUID(vdiRef)
 	if err != nil {

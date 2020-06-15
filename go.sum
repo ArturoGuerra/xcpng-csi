@@ -11,6 +11,8 @@ github.com/arturoguerra/go-logging v0.0.0-20200217210650-0d44702b7d73 h1:pNk2kja
 github.com/arturoguerra/go-logging v0.0.0-20200217210650-0d44702b7d73/go.mod h1:4Slb68ZwB5a/H8UlGskqJcFA3inUpAWyhwyZjB3S0Ok=
 github.com/arturoguerra/go-xolib v0.0.0-20200612232509-69f97c32b0ec h1:02QpHgLytceeajCSk2BRDOkSf3rvsPlQrReNVp6Zt8U=
 github.com/arturoguerra/go-xolib v0.0.0-20200612232509-69f97c32b0ec/go.mod h1:qrNqO9j/K/AWB4p39jEAxQN2rmYgbF5uzDvr8qWILD4=
+github.com/arturoguerra/go-xolib v0.0.0-20200615025038-b314a6a38747 h1:41USH/lW8Op5/LBe85pP/lkwhw0bQlgsg8NZeIFupac=
+github.com/arturoguerra/go-xolib v0.0.0-20200615025038-b314a6a38747/go.mod h1:qrNqO9j/K/AWB4p39jEAxQN2rmYgbF5uzDvr8qWILD4=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=

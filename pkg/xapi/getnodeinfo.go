@@ -1,11 +1,17 @@
 package xapi
 
 func (c *xClient) GetNodeInfo(nodeLabel string) *NodeInfo {
-	vm, err := c.GetVMByName(nodeLabel)
+	vms, err := c.GetVMByName(nodeLabel)
 	if err != nil {
 		log.Error(err)
 		return nil
 	}
+
+    if len(vms) > 1 || len(vms) == 0 {
+		return nil
+	}
+
+	vm := vms[0]
 
 	if zone := c.GetZoneByUUID(vm.PoolID); zone != nil {
 		return &NodeInfo{

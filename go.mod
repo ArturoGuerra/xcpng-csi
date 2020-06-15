@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/akutz/gofsutil v0.1.2
 	github.com/arturoguerra/go-logging v0.0.0-20200217210650-0d44702b7d73
-	github.com/arturoguerra/go-xolib v0.0.0-20200612232509-69f97c32b0ec
+	github.com/arturoguerra/go-xolib v0.0.0-20200615025038-b314a6a38747
 	github.com/container-storage-interface/spec v1.2.0
 	github.com/golang/protobuf v1.4.2
 	github.com/google/uuid v1.1.1 // indirect
