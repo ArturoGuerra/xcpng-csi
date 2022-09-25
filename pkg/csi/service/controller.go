@@ -174,15 +174,10 @@ func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.Contro
 	log.Info("Running ControllerUnpublishVolume")
 	if err := s.XClient.Detach(req.GetVolumeId(), req.GetNodeId()); err != nil {
 		log.Error(err)
-		/*
-		   Temp fix for an issue where kubernetes calls this twice causing the pv to stay in Terminating
-		   TODO: Implement error filtering for when a volume is not found
-		*/
-		return &csi.ControllerUnpublishVolumeResponse{}, nil
-		/*return nil, status.Error(codes.NotFound, "")*/
+		return nil, status.Error(codes.Internal, "Unable to detach volume")
 	}
 
-	log.Infof("Volume %s detached from node %s", req.GetVolumeId(), nodeName)
+	log.Infof("Volume %s detached from node %s", req.GetVolumeId(), req.GetNodeId())
 
 	return &csi.ControllerUnpublishVolumeResponse{}, nil
 }
