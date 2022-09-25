@@ -48,5 +48,6 @@ func IsNotExist(target string) (bool, error) {
 }
 
 func MakeDir(target string) error {
-    return os.Mkdir(target, 0775)
+	// make sure that all paths exist
+	return os.MkdirAll(target, 0775)
 }
