@@ -63,6 +63,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            {{- include "clusterId" . | nindent 12 }}
             - name: CSI_ENDPOINT
               value: /csi/csi.sock
             - name: CSI_MODE

@@ -74,6 +74,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            {{- include "clusterId" . | nindent 12 }}
             - name: CSI_ENDPOINT
               value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
             - name: CSI_MODE
