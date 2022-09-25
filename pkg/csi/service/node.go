@@ -51,6 +51,12 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
 		return nil, status.Error(codes.NotFound, "")
 	}
 
+	// we should have device at this time
+	if device == "" {
+		log.Info("No device specified")
+		return nil, status.Error(codes.Internal, "No device specified")
+	}
+
 	/* Check if path exists */
 	notPath, err := mounter.IsNotExist(stagingTargetPath)
 	if notPath {
