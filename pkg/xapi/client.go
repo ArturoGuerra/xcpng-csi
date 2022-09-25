@@ -15,6 +15,7 @@ type (
 
 	// XClient interface
 	XClient interface {
+		GetVMFromK8sNode(nodeID string) (*xoclient.VM, error)
 		Attach(string, string, string) (string, error)
 		Detach(string, string) error
 		IsAttached(string, string) (bool, error)
