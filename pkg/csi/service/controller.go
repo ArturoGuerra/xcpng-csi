@@ -123,12 +123,14 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 
 }
 
-// TODO
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
 	log.Infof("Running DeleteVolume %s", req.GetVolumeId())
 	if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
 		log.Error(err)
-		return nil, status.Error(codes.Internal, "")
+		if err.Error() != errs.VDINotFound {
+			return nil, status.Error(codes.Internal, "")
+		}
+		log.Info("Ignoring missing VDI when deleting volume")
 	}
 
 	return &csi.DeleteVolumeResponse{}, nil
