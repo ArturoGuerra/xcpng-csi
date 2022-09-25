@@ -45,6 +45,7 @@ spec:
         #Node
         - name: node
           image: {{ template "image" . }}
+          imagePullPolicy: Always
           ports:
             - name: healthz
               protocol: TCP
