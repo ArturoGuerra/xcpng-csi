@@ -82,9 +82,10 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Staging Target Path must be provided")
 	}
 
-	log.Infof("Unmounting Global Path: (%s)", stagingTargetPath)
-	if err := mounter.Unmount(stagingTargetPath); err != nil {
-		log.Error(err)
+	log.Info("Unmounting GLOBAL path")
+
+	if err := mounter.CleanUnmount(stagingTargetPath); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	log.Infof("NodeUnstageVolume DONE: %s", req.GetVolumeId())
@@ -140,9 +141,10 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
 		return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume Target Path must be provided")
 	}
 
-	log.Infof("Unmounting: %s", targetPath)
-	if err := mounter.Unmount(targetPath); err != nil {
-		log.Error(err)
+	log.Info("Unmounting BIND path")
+
+	if err := mounter.CleanUnmount(targetPath); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	log.Infof("NodeUnpublishVolume DONE: %s", req.GetVolumeId())
