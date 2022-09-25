@@ -29,10 +29,10 @@ spec:
               mountPath: /var/lib/csi/sockets/pluginproxy
         # CSI Provisioner
         - name: csi-provisioner
-          image: quay.io/k8scsi/csi-provisioner:v1.5.0
+          image: quay.io/k8scsi/csi-provisioner:v2.1.2
           args:
             - "--csi-address=$(ADDRESS)"
-            - "--enable-leader-election"
+            - "--leader-election"
             - "--feature-gates=Topology=true"
             - "--strict-topology"
           env:
@@ -43,7 +43,7 @@ spec:
               mountPath: /var/lib/csi/sockets/pluginproxy
         # CSI Attacher
         - name: csi-attacher
-          image: quay.io/k8scsi/csi-attacher:v2.1.0
+          image: quay.io/k8scsi/csi-attacher:v3.1.0
           args:
             - "--csi-address=$(ADDRESS)"
             - "--leader-election"

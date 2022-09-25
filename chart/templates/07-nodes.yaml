@@ -26,7 +26,7 @@ spec:
               mountPath: /csi
         # Node Registration
         - name: csi-driver-registrar
-          image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+          image: quay.io/k8scsi/csi-node-driver-registrar:v2.1.0
           args:
             - "-v=10"
             - "--csi-address=/csi/csi.sock"
