@@ -7,12 +7,19 @@ func (c *xClient) GetNodeInfo(nodeLabel string) *NodeInfo {
 		return nil
 	}
 
-    if len(vms) > 1 || len(vms) == 0 {
+	if len(vms) == 0 {
+		log.Info("No xen nodes found")
+		return nil
+	}
+
+	if len(vms) > 1 {
+		log.Infof("Multiple xen nodes found (%d)", len(vms))
 		return nil
 	}
 
 	vm := vms[0]
 
+	log.Infof("Getting zone by uuid %s", vm.PoolID)
 	if zone := c.GetZoneByUUID(vm.PoolID); zone != nil {
 		return &NodeInfo{
 			NodeID:   nodeLabel,
@@ -21,6 +28,8 @@ func (c *xClient) GetNodeInfo(nodeLabel string) *NodeInfo {
 			ZoneUUID: zone.PoolID,
 		}
 	}
+
+	log.Info("No Zone found")
 
 	return nil
 }

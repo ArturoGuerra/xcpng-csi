@@ -13,6 +13,8 @@ func (c *xClient) Detach(volID, nodeID string) error {
 		return err
 	}
 
+	log.Infof("Detach: deleting VBDs (%d)", len(vbds))
+
 	// deletes said VBD
 	for _, vbd := range vbds {
 		if vbd.VM == vmRef {

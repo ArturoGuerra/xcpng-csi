@@ -87,6 +87,8 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 		log.Error(err)
 	}
 
+	log.Infof("NodeUnstageVolume DONE: %s", req.GetVolumeId())
+
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 
@@ -143,6 +145,8 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
 		log.Error(err)
 	}
 
+	log.Infof("NodeUnpublishVolume DONE: %s", req.GetVolumeId())
+
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
 
@@ -156,6 +160,12 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 	*/
 
 	if nodeInfo := s.XClient.GetNodeInfo(s.NodeID); nodeInfo != nil {
+		log.Info("Nodeinfo:")
+		log.Infof(" - NodeID: %s", nodeInfo.NodeID)
+		log.Infof(" - NodeUUID: %s", nodeInfo.NodeUUID)
+		log.Infof(" - ZoneID: %s", nodeInfo.Zone)
+		log.Infof(" - ZoneUUID: %s", nodeInfo.ZoneUUID)
+
 		AccessibleTopology := make(map[string]string)
 		AccessibleTopology[ZoneLabel] = nodeInfo.Zone
 		AccessibleTopology[ZoneUUID] = nodeInfo.ZoneUUID
@@ -163,8 +173,6 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 		AccessibleTopology[NodeName] = nodeInfo.NodeID
 
 		topology.Segments = AccessibleTopology
-
-		log.Infof("NodeID: %s NodeUUID: %s ZoneID: %s ZoneUUID: %s", nodeInfo.NodeID, nodeInfo.NodeUUID, nodeInfo.Zone, nodeInfo.ZoneUUID)
 	}
 
 	return &csi.NodeGetInfoResponse{

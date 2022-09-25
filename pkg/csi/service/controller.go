@@ -125,7 +125,7 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 
 // TODO
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
-	log.Info("Running DeleteVolume")
+	log.Infof("Running DeleteVolume %s", req.GetVolumeId())
 	if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
 		log.Error(err)
 		return nil, status.Error(codes.Internal, "")
@@ -179,6 +179,8 @@ func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.Contro
 		return &csi.ControllerUnpublishVolumeResponse{}, nil
 		/*return nil, status.Error(codes.NotFound, "")*/
 	}
+
+	log.Infof("Volume %s detached from node %s", req.GetVolumeId(), nodeName)
 
 	return &csi.ControllerUnpublishVolumeResponse{}, nil
 }
