@@ -23,10 +23,10 @@ spec:
             - "--csi-address=$(ADDRESS)"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
         # CSI Provisioner
         - name: csi-provisioner
           image: quay.io/k8scsi/csi-provisioner:v2.1.2
@@ -37,10 +37,10 @@ spec:
             - "--strict-topology"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
         # CSI Attacher
         - name: csi-attacher
           image: quay.io/k8scsi/csi-attacher:v3.1.0
@@ -49,10 +49,10 @@ spec:
             - "--leader-election"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
         # Controller
         - name: controller
           image: {{ template "image" . }}
@@ -75,7 +75,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: CSI_ENDPOINT
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
             - name: CSI_MODE
               value: controller
           envFrom:
@@ -83,7 +83,7 @@ spec:
                 name: {{ template "name" . }}
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
             - name: config
               mountPath: /config
       volumes:

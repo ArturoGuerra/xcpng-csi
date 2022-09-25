@@ -29,3 +29,7 @@
 {{- define "timestamp" -}}
 {{ date "20060102150405" .Release.Time | quote }}
 {{- end -}}
+
+{{- define "varDir" -}}
+{{ default "/var" .Values.varDir }}
+{{- end -}}
