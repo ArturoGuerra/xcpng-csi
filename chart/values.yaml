@@ -6,13 +6,39 @@ image:
     repository: arturoguerra/xcpng-csi
     #    tag: latest
 
-# config:
-#     zones:
-#     - name: us-west-1
-#       hostid: "Host UUID"
-#       default: "Default Storage Repository"
-#       storage:
-#       - name: standard
-#         sr: "sr UUID"
-
+## service account to use (if necessary)
 # serviceAccount: "Account Name"
+
+## specify cluster ID if not given from underlying api (if using microk8s)
+# clusterId: vega-k8s
+
+## relocate varDir (if using microk8s as snap)
+# varDir: /var/snap/microk8s/common/var
+
+### configure CSI driver
+#config:
+#  ## Xen Orchestra credentials
+#  credentials:
+#    ### address of a Xen Orchestra instance
+#    host: my-xen-orchestra-instance
+#    ### Xen Orchestra user
+#    username: user-with-privileges
+#    ### Xen Orchestra user's password
+#    password: very-secret-password
+#    ### enable SSL validation
+#    ssl: false
+#
+#  ## define available storages for each zone
+#  zones:
+#    ### pool config
+#    - name: my-pool-name
+#      #### pool UUID goes here
+#      poolid: my-pool-uuid
+#      #### default storage to use
+#      default: my-default-storage
+#      #### available storages
+#      storage:
+#        ##### SR config
+#        - name: my-default-storage
+#          ###### SR UUID
+#          sr: my-default-storage-uuid
