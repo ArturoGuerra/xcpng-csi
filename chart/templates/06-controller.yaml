@@ -23,39 +23,40 @@ spec:
             - "--csi-address=$(ADDRESS)"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
         # CSI Provisioner
         - name: csi-provisioner
-          image: quay.io/k8scsi/csi-provisioner:v1.5.0
+          image: quay.io/k8scsi/csi-provisioner:v2.1.2
           args:
             - "--csi-address=$(ADDRESS)"
-            - "--enable-leader-election"
+            - "--leader-election"
             - "--feature-gates=Topology=true"
             - "--strict-topology"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
         # CSI Attacher
         - name: csi-attacher
-          image: quay.io/k8scsi/csi-attacher:v2.1.0
+          image: quay.io/k8scsi/csi-attacher:v3.1.0
           args:
             - "--csi-address=$(ADDRESS)"
             - "--leader-election"
           env:
             - name: ADDRESS
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
         # Controller
         - name: controller
           image: {{ template "image" . }}
+          imagePullPolicy: Always
           ports:
             - name: healthz
               protocol: TCP
@@ -73,8 +74,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            {{- include "clusterId" . | nindent 12 }}
             - name: CSI_ENDPOINT
-              value: /var/lib/csi/sockets/pluginproxy/xcpng.socket
+              value: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy/xcpng.socket
             - name: CSI_MODE
               value: controller
           envFrom:
@@ -82,7 +84,7 @@ spec:
                 name: {{ template "name" . }}
           volumeMounts:
             - name: socket
-              mountPath: /var/lib/csi/sockets/pluginproxy
+              mountPath: {{ template "varDir" . }}/lib/csi/sockets/pluginproxy
             - name: config
               mountPath: /config
       volumes:

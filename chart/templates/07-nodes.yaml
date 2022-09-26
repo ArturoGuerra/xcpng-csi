@@ -26,11 +26,11 @@ spec:
               mountPath: /csi
         # Node Registration
         - name: csi-driver-registrar
-          image: quay.io/k8scsi/csi-node-driver-registrar:v1.2.0
+          image: quay.io/k8scsi/csi-node-driver-registrar:v2.1.0
           args:
             - "-v=10"
             - "--csi-address=/csi/csi.sock"
-            - "--kubelet-registration-path=/var/lib/kubelet/plugins/csi.xcpng.arturonet.com/csi.sock"
+            - "--kubelet-registration-path={{ template "varDir" . }}/lib/kubelet/plugins/csi.xcpng.arturonet.com/csi.sock"
           lifecycle:
             preStop:
               exec:
@@ -45,6 +45,7 @@ spec:
         #Node
         - name: node
           image: {{ template "image" . }}
+          imagePullPolicy: Always
           ports:
             - name: healthz
               protocol: TCP
@@ -62,6 +63,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            {{- include "clusterId" . | nindent 12 }}
             - name: CSI_ENDPOINT
               value: /csi/csi.sock
             - name: CSI_MODE
@@ -73,12 +75,12 @@ spec:
             - name: socket-dir
               mountPath: /csi
             - name: mountpoint-dir
-              mountPath: /var/lib/kubelet/pods
+              mountPath: {{ template "varDir" . }}/lib/kubelet/pods
               mountPropagation: Bidirectional
             - name: device-dir
               mountPath: /dev
             - name: plugins-dir
-              mountPath: /var/lib/kubelet/plugins
+              mountPath: {{ template "varDir" . }}/lib/kubelet/plugins
               mountPropagation: Bidirectional
             - name: config
               mountPath: /config
@@ -91,19 +93,19 @@ spec:
             type: Directory
         - name: plugins-dir
           hostPath:
-            path: /var/lib/kubelet/plugins
+            path: {{ template "varDir" . }}/lib/kubelet/plugins
             type: DirectoryOrCreate
         - name: socket-dir
           hostPath:
-            path: /var/lib/kubelet/plugins/csi.xcpng.arturonet.com
+            path: {{ template "varDir" . }}/lib/kubelet/plugins/csi.xcpng.arturonet.com
             type: DirectoryOrCreate
         - name: mountpoint-dir
           hostPath:
-            path: /var/lib/kubelet/pods
+            path: {{ template "varDir" . }}/lib/kubelet/pods
             type: DirectoryOrCreate
         - name: registration-dir
           hostPath:
-            path: /var/lib/kubelet/plugins_registry
+            path: {{ template "varDir" . }}/lib/kubelet/plugins_registry
             type: Directory
         - name: config
           configMap:

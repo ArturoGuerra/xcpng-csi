@@ -123,12 +123,14 @@ func (s *service) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest
 
 }
 
-// TODO
 func (s *service) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
-	log.Info("Running DeleteVolume")
+	log.Infof("Running DeleteVolume %s", req.GetVolumeId())
 	if err := s.XClient.DeleteVolume(req.GetVolumeId()); err != nil {
 		log.Error(err)
-		return nil, status.Error(codes.Internal, "")
+		if err.Error() != errs.VDINotFound {
+			return nil, status.Error(codes.Internal, "")
+		}
+		log.Info("Ignoring missing VDI when deleting volume")
 	}
 
 	return &csi.DeleteVolumeResponse{}, nil
@@ -172,13 +174,10 @@ func (s *service) ControllerUnpublishVolume(ctx context.Context, req *csi.Contro
 	log.Info("Running ControllerUnpublishVolume")
 	if err := s.XClient.Detach(req.GetVolumeId(), req.GetNodeId()); err != nil {
 		log.Error(err)
-		/*
-		   Temp fix for an issue where kubernetes calls this twice causing the pv to stay in Terminating
-		   TODO: Implement error filtering for when a volume is not found
-		*/
-		return &csi.ControllerUnpublishVolumeResponse{}, nil
-		/*return nil, status.Error(codes.NotFound, "")*/
+		return nil, status.Error(codes.Internal, "Unable to detach volume")
 	}
+
+	log.Infof("Volume %s detached from node %s", req.GetVolumeId(), req.GetNodeId())
 
 	return &csi.ControllerUnpublishVolumeResponse{}, nil
 }

@@ -2,15 +2,22 @@
 
 XCP-ng CSI Driver is a Go project that uses the Container Storage Interface to integrate native XCP-ng Volumes in Kubernetes or other CSI capable container orchestrators
 
+This driver communicates with your Xen Cluster via Xen Orchestra instance, 
+so keep that in mind when configuring and using the driver. 
+
 ## Installation
 
 Use the package manager Helm to install the driver in Kubernetes
 
+> MAKE SURE that you update `values.yaml` according to your config 
+
 ```bash
-helm install xcpng-csi ./chart --namespace=xcpng-csi
+helm upgrade --install --namespace=xcpng-csi --create-namespace xcpng-csi ./chart -f ./values.yaml
 ```
 
 ## Usage
+
+Create StorageClass that consumes driver
 
 ```yaml
 # StorageClass that uses the XCP-ng CSI Driver
@@ -22,7 +29,11 @@ provisioner: csi.xcpng.ar2ro.io
 parameters:
    Datastore: "Optional: Storage Repository Name"
    FSType: "Optional: Filesystem Type ie. ext4 Defaults to ext4"
----
+```
+
+Then create PersistentVolumeClaim that uses StorageClass
+
+```yaml
 # PersistentVolumeClaim that users the fast StorageClass
 apiVersion: v1
 kind: PersistentVolumeClaim

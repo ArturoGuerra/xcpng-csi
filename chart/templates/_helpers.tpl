@@ -29,3 +29,15 @@
 {{- define "timestamp" -}}
 {{ date "20060102150405" .Release.Time | quote }}
 {{- end -}}
+
+{{- define "varDir" -}}
+{{ default "/var" .Values.varDir }}
+{{- end -}}
+
+{{- define "clusterId" -}}
+{{- if .Values.clusterId -}}
+# use clusterId from config
+- name: CLUSTER_ID
+  value: {{ .Values.clusterId }}
+{{- end -}}
+{{- end -}}

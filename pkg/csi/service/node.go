@@ -51,6 +51,12 @@ func (s *service) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeR
 		return nil, status.Error(codes.NotFound, "")
 	}
 
+	// we should have device at this time
+	if device == "" {
+		log.Info("No device specified")
+		return nil, status.Error(codes.Internal, "No device specified")
+	}
+
 	/* Check if path exists */
 	notPath, err := mounter.IsNotExist(stagingTargetPath)
 	if notPath {
@@ -82,10 +88,13 @@ func (s *service) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVol
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume Staging Target Path must be provided")
 	}
 
-	log.Infof("Unmounting Global Path: (%s)", stagingTargetPath)
-	if err := mounter.Unmount(stagingTargetPath); err != nil {
-		log.Error(err)
+	log.Info("Unmounting GLOBAL path")
+
+	if err := mounter.CleanUnmount(stagingTargetPath); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
+
+	log.Infof("NodeUnstageVolume DONE: %s", req.GetVolumeId())
 
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }
@@ -138,10 +147,13 @@ func (s *service) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublis
 		return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume Target Path must be provided")
 	}
 
-	log.Infof("Unmounting: %s", targetPath)
-	if err := mounter.Unmount(targetPath); err != nil {
-		log.Error(err)
+	log.Info("Unmounting BIND path")
+
+	if err := mounter.CleanUnmount(targetPath); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
+
+	log.Infof("NodeUnpublishVolume DONE: %s", req.GetVolumeId())
 
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
@@ -156,6 +168,12 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 	*/
 
 	if nodeInfo := s.XClient.GetNodeInfo(s.NodeID); nodeInfo != nil {
+		log.Info("Nodeinfo:")
+		log.Infof(" - NodeID: %s", nodeInfo.NodeID)
+		log.Infof(" - NodeUUID: %s", nodeInfo.NodeUUID)
+		log.Infof(" - ZoneID: %s", nodeInfo.Zone)
+		log.Infof(" - ZoneUUID: %s", nodeInfo.ZoneUUID)
+
 		AccessibleTopology := make(map[string]string)
 		AccessibleTopology[ZoneLabel] = nodeInfo.Zone
 		AccessibleTopology[ZoneUUID] = nodeInfo.ZoneUUID
@@ -163,8 +181,6 @@ func (s *service) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) 
 		AccessibleTopology[NodeName] = nodeInfo.NodeID
 
 		topology.Segments = AccessibleTopology
-
-		log.Infof("NodeID: %s NodeUUID: %s ZoneID: %s ZoneUUID: %s", nodeInfo.NodeID, nodeInfo.NodeUUID, nodeInfo.Zone, nodeInfo.ZoneUUID)
 	}
 
 	return &csi.NodeGetInfoResponse{
